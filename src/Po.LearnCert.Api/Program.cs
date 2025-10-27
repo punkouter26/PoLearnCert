@@ -123,6 +123,7 @@ try
     // Configure the HTTP request pipeline
     if (app.Environment.IsDevelopment())
     {
+        app.UseWebAssemblyDebugging();
         app.UseSwagger();
         app.UseSwaggerUI(options =>
         {
@@ -133,13 +134,20 @@ try
 
     app.UseHttpsRedirection();
     
+    // Serve Blazor WebAssembly static files
+    app.UseBlazorFrameworkFiles();
+    app.UseStaticFiles();
+    
     // Use CORS
     app.UseCors("BlazorClient");
+    
+    app.UseRouting();
     
     app.UseAuthentication();
     app.UseAuthorization();
     
     app.MapControllers();
+    app.MapFallbackToFile("index.html");
 
     var summaries = new[]
     {

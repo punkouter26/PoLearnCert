@@ -53,9 +53,9 @@ public class QuizSessionService : IQuizSessionService
     }
 
     /// <inheritdoc/>
-    public async Task<QuestionDto> GetQuestionAsync(string subtopicId, string questionId)
+    public async Task<QuestionDto> GetQuestionAsync(string certificationId, string questionId)
     {
-        var response = await _httpClient.GetAsync($"api/questions/{subtopicId}/{questionId}");
+        var response = await _httpClient.GetAsync($"api/questions/{certificationId}/{questionId}");
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<QuestionDto>()
             ?? throw new InvalidOperationException("Failed to deserialize question response.");

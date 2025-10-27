@@ -38,7 +38,8 @@ public class QuestionRepository : IQuestionRepository
     public async Task<IEnumerable<QuestionEntity>> GetQuestionsByCertificationAsync(string certificationId, CancellationToken cancellationToken = default)
     {
         var questions = new List<QuestionEntity>();
-        var filter = $"CertificationId eq '{certificationId}'";
+        // Query by PartitionKey (CertificationId) for efficient table storage queries
+        var filter = $"PartitionKey eq '{certificationId}'";
         
         await foreach (var question in _questionsTable.QueryAsync<QuestionEntity>(filter, cancellationToken: cancellationToken))
         {
@@ -49,16 +50,17 @@ public class QuestionRepository : IQuestionRepository
         return questions;
     }
 
-    public async Task<QuestionEntity?> GetQuestionByIdAsync(string subtopicId, string questionId, CancellationToken cancellationToken = default)
+    public async Task<QuestionEntity?> GetQuestionByIdAsync(string certificationId, string questionId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var response = await _questionsTable.GetEntityAsync<QuestionEntity>(subtopicId, questionId, cancellationToken: cancellationToken);
+            // Use certificationId as PartitionKey, questionId as RowKey
+            var response = await _questionsTable.GetEntityAsync<QuestionEntity>(certificationId, questionId, cancellationToken: cancellationToken);
             return response.Value;
         }
         catch (Azure.RequestFailedException ex) when (ex.Status == 404)
         {
-            _logger.LogDebug("Question not found: {SubtopicId}/{QuestionId}", subtopicId, questionId);
+            _logger.LogDebug("Question not found: {CertificationId}/{QuestionId}", certificationId, questionId);
             return null;
         }
     }

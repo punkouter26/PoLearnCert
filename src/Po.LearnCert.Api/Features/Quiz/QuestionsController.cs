@@ -25,19 +25,19 @@ public class QuestionsController : ControllerBase
     /// <summary>
     /// Gets a question by ID with its answer choices.
     /// </summary>
-    /// <param name="subtopicId">The subtopic ID.</param>
+    /// <param name="certificationId">The certification ID (partition key).</param>
     /// <param name="id">The question ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The question details with answer choices.</returns>
-    [HttpGet("{subtopicId}/{id}")]
+    [HttpGet("{certificationId}/{id}")]
     [ProducesResponseType(typeof(QuestionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<QuestionDto>> GetQuestion(
-        string subtopicId,
+        string certificationId,
         string id,
         CancellationToken cancellationToken)
     {
-        var question = await _questionRepository.GetQuestionByIdAsync(subtopicId, id, cancellationToken);
+        var question = await _questionRepository.GetQuestionByIdAsync(certificationId, id, cancellationToken);
         
         if (question == null)
         {

@@ -141,7 +141,7 @@ public class QuizSessionService : IQuizSessionService
 
         // Get question and choices
         var question = await _questionRepository.GetQuestionByIdAsync(
-            session.SubtopicId ?? session.CertificationId,
+            session.CertificationId, // Use certification ID as partition key
             request.QuestionId,
             cancellationToken);
 

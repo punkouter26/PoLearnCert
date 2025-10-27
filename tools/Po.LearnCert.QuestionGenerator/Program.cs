@@ -17,7 +17,7 @@ var tableConnectionString = configuration["AzureTableStorage:ConnectionString"];
 var openAiEndpoint = configuration["AzureOpenAI:Endpoint"];
 var openAiKey = configuration["AzureOpenAI:Key"];
 var openAiDeployment = configuration["AzureOpenAI:DeploymentName"];
-var questionsPerSubtopic = configuration.GetValue<int>("SeedData:QuestionsPerSubtopic", 10);
+var defaultQuestionsPerSubtopic = configuration.GetValue<int>("SeedData:QuestionsPerSubtopic", 25);
 
 Console.WriteLine("╔════════════════════════════════════════════════════╗");
 Console.WriteLine("║   PoLearnCert AI Question Generator               ║");
@@ -44,7 +44,76 @@ if (string.IsNullOrEmpty(openAiEndpoint) || string.IsNullOrEmpty(openAiKey) || s
 
 Console.WriteLine($"🔗 Storage: {(tableConnectionString.Contains("UseDevelopmentStorage") ? "Azurite (Local)" : "Azure")}");
 Console.WriteLine($"🤖 AI Model: {openAiDeployment}");
-Console.WriteLine($"📊 Questions per subtopic: {questionsPerSubtopic}");
+Console.WriteLine();
+
+// ============================================================================
+// PROMPT USER FOR NUMBER OF QUESTIONS
+// ============================================================================
+
+int questionsPerSubtopic;
+while (true)
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.Write($"📊 Enter number of questions to generate per subtopic (default: {defaultQuestionsPerSubtopic}): ");
+    Console.ResetColor();
+    
+    var input = Console.ReadLine();
+    
+    // Use default if user presses Enter
+    if (string.IsNullOrWhiteSpace(input))
+    {
+        questionsPerSubtopic = defaultQuestionsPerSubtopic;
+        break;
+    }
+    
+    // Validate input
+    if (int.TryParse(input, out var parsedValue) && parsedValue > 0)
+    {
+        questionsPerSubtopic = parsedValue;
+        break;
+    }
+    
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("❌ Invalid input. Please enter a positive number.");
+    Console.ResetColor();
+}
+
+// ============================================================================
+// SHOW SUMMARY AND CONFIRM
+// ============================================================================
+
+Console.WriteLine();
+Console.ForegroundColor = ConsoleColor.Cyan;
+Console.WriteLine("═══════════════════════════════════════════════════");
+Console.WriteLine("           GENERATION SUMMARY");
+Console.WriteLine("═══════════════════════════════════════════════════");
+Console.ResetColor();
+
+// Calculate totals
+var subtopicCount = 8; // 4 AZ-900 + 4 Security+
+var totalQuestions = questionsPerSubtopic * subtopicCount;
+var estimatedMinutes = (int)Math.Ceiling(totalQuestions * 3.0 / 60); // ~3 seconds per question
+
+Console.WriteLine($"  📚 Certifications: 2 (AZ-900, Security+)");
+Console.WriteLine($"  📂 Subtopics: {subtopicCount}");
+Console.WriteLine($"  ❓ Questions per subtopic: {questionsPerSubtopic}");
+Console.WriteLine($"  🎯 Total questions: {totalQuestions}");
+Console.WriteLine($"  ⏱️  Estimated time: ~{estimatedMinutes} minutes");
+Console.WriteLine();
+
+Console.ForegroundColor = ConsoleColor.Yellow;
+Console.Write("⚠️  This will use Azure OpenAI API. Continue? (Y/n): ");
+Console.ResetColor();
+
+var confirmation = Console.ReadLine()?.Trim().ToLower();
+if (confirmation == "n" || confirmation == "no")
+{
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("❌ Generation cancelled by user.");
+    Console.ResetColor();
+    return;
+}
+
 Console.WriteLine();
 
 // Initialize clients

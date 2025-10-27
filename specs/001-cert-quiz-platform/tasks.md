@@ -170,10 +170,10 @@ This is a web application with:
 
 ### Implementation for User Story 1 - Data Seeding
 
-- [ ] T089 [US1] Create seed-questions.ps1 script to populate PoLearnCertCertifications table with AZ-900 and Security+ in scripts/
-- [ ] T090 [US1] Create seed data for PoLearnCertSubtopics table with subtopics for both certifications in scripts/seed-questions.ps1
-- [ ] T091 [US1] Create seed data for PoLearnCertQuestions table with at least 200 questions per certification in scripts/seed-questions.ps1
-- [ ] T092 [US1] Create seed data for PoLearnCertAnswerChoices table with 4 choices per question in scripts/seed-questions.ps1
+- [X] T089 [US1] Create seed-questions.ps1 script to populate PoLearnCertCertifications table with AZ-900 and Security+ in scripts/
+- [X] T090 [US1] Create seed data for PoLearnCertSubtopics table with subtopics for both certifications in scripts/seed-questions.ps1
+- [X] T091 [US1] Create seed data for PoLearnCertQuestions table with at least 200 questions per certification in scripts/seed-questions.ps1
+- [X] T092 [US1] Create seed data for PoLearnCertAnswerChoices table with 4 choices per question in scripts/seed-questions.ps1
 
 **Checkpoint**: User Story 1 (MVP) is complete - learners can take quiz sessions with immediate feedback
 

@@ -31,5 +31,5 @@ public interface IQuizSessionService
     /// <summary>
     /// Gets a question by ID.
     /// </summary>
-    Task<QuestionDto> GetQuestionAsync(string subtopicId, string questionId);
+    Task<QuestionDto> GetQuestionAsync(string certificationId, string questionId);
 }

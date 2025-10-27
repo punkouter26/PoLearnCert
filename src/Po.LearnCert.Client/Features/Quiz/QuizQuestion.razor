@@ -108,8 +108,9 @@
                 return;
             }
 
-            var subtopicId = QuizState.Session!.SubtopicId ?? QuizState.Session.CertificationId;
-            currentQuestion = await QuizSessionService.GetQuestionAsync(subtopicId, questionId);
+            // Use certificationId as the partition key for fetching questions
+            var certificationId = QuizState.Session!.CertificationId;
+            currentQuestion = await QuizSessionService.GetQuestionAsync(certificationId, questionId);
             QuizState.SetCurrentQuestion(currentQuestion);
             selectedChoiceId = null;
         }
@@ -154,6 +155,13 @@
             };
 
             var response = await QuizSessionService.SubmitAnswerAsync(request);
+            
+            // Update the session state with the new progress from the server
+            QuizState.Session!.CurrentQuestionIndex = response.CurrentQuestionIndex;
+            QuizState.Session!.CorrectAnswers = response.CorrectAnswers;
+            QuizState.Session!.IncorrectAnswers = response.IncorrectAnswers;
+            QuizState.Session!.IsCompleted = response.IsSessionComplete;
+            
             QuizState.RecordAnswer(currentQuestion.Id);
 
             // Navigate to feedback page with the response

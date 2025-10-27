@@ -18,7 +18,7 @@ public interface IQuestionRepository
     /// <summary>
     /// Gets a question by ID.
     /// </summary>
-    Task<QuestionEntity?> GetQuestionByIdAsync(string subtopicId, string questionId, CancellationToken cancellationToken = default);
+    Task<QuestionEntity?> GetQuestionByIdAsync(string certificationId, string questionId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets answer choices for a question.

@@ -1,0 +1,224 @@
+/* Answer Feedback Styles */
+
+.feedback-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+    animation: slideIn 0.4s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.feedback-content {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 3rem 2rem;
+    box-shadow: var(--shadow-xl);
+    text-align: center;
+}
+
+.feedback-content.correct {
+    border-top: 6px solid var(--success-color);
+}
+
+.feedback-content.incorrect {
+    border-top: 6px solid var(--error-color);
+}
+
+.feedback-icon {
+    margin-bottom: 1.5rem;
+}
+
+.icon-correct,
+.icon-incorrect {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    font-size: 3rem;
+    font-weight: bold;
+    animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.icon-correct {
+    background-color: var(--success-light);
+    color: var(--success-color);
+}
+
+.icon-incorrect {
+    background-color: var(--error-light);
+    color: var(--error-color);
+}
+
+.feedback-content h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.feedback-content.correct h2 {
+    color: var(--success-color);
+}
+
+.feedback-content.incorrect h2 {
+    color: var(--error-color);
+}
+
+.explanation {
+    background-color: var(--background);
+    border-left: 4px solid var(--primary-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.explanation h3 {
+    color: var(--primary-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.explanation p {
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+.correct-answer {
+    background-color: var(--success-light);
+    border-left: 4px solid var(--success-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    text-align: left;
+}
+
+.correct-answer h3 {
+    color: var(--success-color);
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.correct-answer p {
+    color: var(--text-primary);
+    line-height: 1.7;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.session-progress {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: var(--background);
+    border-radius: var(--radius-lg);
+}
+
+.score-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.score-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.score-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.score-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.score-item.correct .score-value {
+    color: var(--success-color);
+}
+
+.score-item.incorrect .score-value {
+    color: var(--error-color);
+}
+
+.score-item.total .score-value {
+    color: var(--primary-color);
+}
+
+.form-actions {
+    margin-top: 2rem;
+}
+
+.form-actions button {
+    min-width: 200px;
+    font-size: 1.125rem;
+    padding: 1rem 2rem;
+}
+
+.no-session {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+@media (max-width: 768px) {
+    .feedback-content {
+        padding: 2rem 1.5rem;
+    }
+
+    .score-summary {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .icon-correct,
+    .icon-incorrect {
+        width: 64px;
+        height: 64px;
+        font-size: 2.5rem;
+    }
+
+    .feedback-content h2 {
+        font-size: 1.5rem;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}

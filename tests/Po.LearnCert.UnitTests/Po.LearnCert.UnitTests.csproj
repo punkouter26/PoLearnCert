@@ -20,4 +20,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Po.LearnCert.Api\Po.LearnCert.API.csproj" />
+    <ProjectReference Include="..\..\src\Po.LearnCert.Shared\Po.LearnCert.Shared.csproj" />
+  </ItemGroup>
+
 </Project>
