@@ -1,0 +1,155 @@
+@page "/quiz/setup"
+@using Po.LearnCert.Client.Features.Certifications.Services
+@using Po.LearnCert.Client.Features.Quiz.Services
+@using Po.LearnCert.Shared.Models
+@using Po.LearnCert.Shared.Contracts
+@inject ICertificationService CertificationService
+@inject IQuizSessionService QuizSessionService
+@inject QuizSessionState QuizState
+@inject NavigationManager Navigation
+
+<div class="quiz-setup-container">
+    <h1>Start Quiz Session</h1>
+
+    @if (loading)
+    {
+        <div class="loading">
+            <p>Loading certifications...</p>
+        </div>
+    }
+    else if (error != null)
+    {
+        <div class="error-message">
+            <p>@error</p>
+            <button @onclick="LoadCertifications">Retry</button>
+        </div>
+    }
+    else
+    {
+        <div class="setup-form">
+            <div class="form-group">
+                <label for="certification">Certification *</label>
+                <select id="certification" @onchange="OnCertificationChanged" disabled="@creating">
+                    <option value="">-- Select Certification --</option>
+                    @foreach (var cert in certifications)
+                    {
+                        <option value="@cert.Id">@cert.Name</option>
+                    }
+                </select>
+            </div>
+
+            @if (selectedCertification != null && selectedCertification.Subtopics.Count > 0)
+            {
+                <div class="form-group">
+                    <label for="subtopic">Subtopic (Optional)</label>
+                    <select id="subtopic" @bind="selectedSubtopicId" disabled="@creating">
+                        <option value="">All Subtopics</option>
+                        @foreach (var subtopic in selectedCertification.Subtopics)
+                        {
+                            <option value="@subtopic.Id">@subtopic.Name (@subtopic.QuestionCount questions)</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            <div class="form-group">
+                <label for="questionCount">Number of Questions *</label>
+                <input type="number" id="questionCount" @bind="questionCount" 
+                       min="1" max="50" disabled="@creating" />
+                <small>Between 1 and 50 questions</small>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-primary" @onclick="StartQuiz" disabled="@(!CanStartQuiz || creating)">
+                    @if (creating)
+                    {
+                        <span>Creating Session...</span>
+                    }
+                    else
+                    {
+                        <span>Start Quiz</span>
+                    }
+                </button>
+                <button class="btn-secondary" @onclick="Cancel" disabled="@creating">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<CertificationDto> certifications = new();
+    private CertificationDto? selectedCertification;
+    private string? selectedSubtopicId;
+    private int questionCount = 20;
+    private bool loading = true;
+    private bool creating = false;
+    private string? error;
+
+    private bool CanStartQuiz => selectedCertification != null && questionCount >= 1 && questionCount <= 50;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCertifications();
+    }
+
+    private async Task LoadCertifications()
+    {
+        loading = true;
+        error = null;
+
+        try
+        {
+            certifications = await CertificationService.GetAllCertificationsAsync();
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load certifications: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void OnCertificationChanged(ChangeEventArgs e)
+    {
+        var certId = e.Value?.ToString();
+        selectedCertification = certifications.FirstOrDefault(c => c.Id == certId);
+        selectedSubtopicId = null; // Reset subtopic when certification changes
+    }
+
+    private async Task StartQuiz()
+    {
+        if (!CanStartQuiz || selectedCertification == null)
+            return;
+
+        creating = true;
+        error = null;
+
+        try
+        {
+            var request = new CreateQuizSessionRequest
+            {
+                CertificationId = selectedCertification.Id,
+                SubtopicId = string.IsNullOrEmpty(selectedSubtopicId) ? null : selectedSubtopicId,
+                QuestionCount = questionCount
+            };
+
+            var session = await QuizSessionService.CreateSessionAsync(request);
+            QuizState.StartSession(session);
+            Navigation.NavigateTo("/quiz/question");
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to start quiz: {ex.Message}";
+            creating = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

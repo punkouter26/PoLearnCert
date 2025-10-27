@@ -1,0 +1,172 @@
+@page "/quiz/results"
+@using Po.LearnCert.Client.Features.Quiz.Services
+@using Po.LearnCert.Shared.Models
+@inject IQuizSessionService QuizSessionService
+@inject QuizSessionState QuizState
+@inject NavigationManager Navigation
+
+<div class="quiz-results-container">
+    @if (!QuizState.HasActiveSession && QuizState.Session == null)
+    {
+        <div class="no-session">
+            <p>No quiz session found.</p>
+            <button @onclick="GoToSetup">Start New Quiz</button>
+        </div>
+    }
+    else if (loading)
+    {
+        <div class="loading">
+            <p>Loading results...</p>
+        </div>
+    }
+    else if (error != null)
+    {
+        <div class="error-message">
+            <p>@error</p>
+            <button @onclick="LoadResults">Retry</button>
+        </div>
+    }
+    else if (results != null)
+    {
+        <div class="results-content">
+            <div class="results-header">
+                <h1>Quiz Complete!</h1>
+                <div class="score-badge @GetScoreClass()">
+                    <span class="score-percentage">@results.ScorePercentage%</span>
+                    <span class="score-label">Score</span>
+                </div>
+            </div>
+
+            <div class="results-details">
+                <div class="detail-card">
+                    <h3>Certification</h3>
+                    <p>@results.CertificationName</p>
+                    @if (!string.IsNullOrEmpty(results.SubtopicName))
+                    {
+                        <small>Subtopic: @results.SubtopicName</small>
+                    }
+                </div>
+
+                <div class="detail-card">
+                    <h3>Performance</h3>
+                    <div class="performance-stats">
+                        <div class="stat correct">
+                            <span class="stat-value">@results.CorrectAnswers</span>
+                            <span class="stat-label">Correct</span>
+                        </div>
+                        <div class="stat incorrect">
+                            <span class="stat-value">@results.IncorrectAnswers</span>
+                            <span class="stat-label">Incorrect</span>
+                        </div>
+                        <div class="stat total">
+                            <span class="stat-value">@results.TotalQuestions</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card">
+                    <h3>Time</h3>
+                    <p class="duration">@FormatDuration(results.DurationSeconds)</p>
+                    <small>Started: @results.StartedAt.ToLocalTime().ToString("g")</small>
+                    <br />
+                    <small>Completed: @results.CompletedAt.ToLocalTime().ToString("g")</small>
+                </div>
+            </div>
+
+            <div class="performance-message">
+                @GetPerformanceMessage()
+            </div>
+
+            <div class="form-actions">
+                <button class="btn-primary" @onclick="StartNewQuiz">
+                    Start New Quiz
+                </button>
+                <button class="btn-secondary" @onclick="GoHome">
+                    Home
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private QuizResultDto? results;
+    private bool loading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (QuizState.Session == null)
+        {
+            Navigation.NavigateTo("/quiz/setup");
+            return;
+        }
+
+        await LoadResults();
+    }
+
+    private async Task LoadResults()
+    {
+        loading = true;
+        error = null;
+
+        try
+        {
+            results = await QuizSessionService.GetSessionResultsAsync(QuizState.Session!.Id);
+            QuizState.ClearSession(); // Clear session after viewing results
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load results: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private string GetScoreClass()
+    {
+        if (results == null) return "";
+
+        return results.ScorePercentage >= 80 ? "excellent" :
+               results.ScorePercentage >= 70 ? "good" :
+               results.ScorePercentage >= 60 ? "fair" : "needs-improvement";
+    }
+
+    private string GetPerformanceMessage()
+    {
+        if (results == null) return "";
+
+        return results.ScorePercentage >= 80 ? "Excellent work! You've demonstrated strong mastery of this material." :
+               results.ScorePercentage >= 70 ? "Good job! You're on the right track. Review the topics you missed." :
+               results.ScorePercentage >= 60 ? "Fair performance. Consider reviewing the material and trying again." :
+               "Keep studying! Review the material thoroughly and practice more.";
+    }
+
+    private string FormatDuration(int seconds)
+    {
+        var ts = TimeSpan.FromSeconds(seconds);
+        if (ts.TotalHours >= 1)
+            return $"{(int)ts.TotalHours}h {ts.Minutes}m";
+        if (ts.TotalMinutes >= 1)
+            return $"{(int)ts.TotalMinutes}m {ts.Seconds}s";
+        return $"{ts.Seconds}s";
+    }
+
+    private void StartNewQuiz()
+    {
+        Navigation.NavigateTo("/quiz/setup");
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private void GoToSetup()
+    {
+        Navigation.NavigateTo("/quiz/setup");
+    }
+}

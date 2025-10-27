@@ -1,0 +1,120 @@
+@page "/quiz/feedback"
+@using Po.LearnCert.Shared.Models
+@inject QuizSessionState QuizState
+@inject NavigationManager Navigation
+
+<div class="feedback-container">
+    @if (!QuizState.HasActiveSession)
+    {
+        <div class="no-session">
+            <p>No active quiz session.</p>
+            <button @onclick="GoToSetup">Start New Quiz</button>
+        </div>
+    }
+    else
+    {
+        <div class="feedback-content @(isCorrect ? "correct" : "incorrect")">
+            <div class="feedback-icon">
+                @if (isCorrect)
+                {
+                    <span class="icon-correct">✓</span>
+                }
+                else
+                {
+                    <span class="icon-incorrect">✗</span>
+                }
+            </div>
+
+            <h2>@(isCorrect ? "Correct!" : "Incorrect")</h2>
+
+            @if (!string.IsNullOrEmpty(explanation))
+            {
+                <div class="explanation">
+                    <h3>Explanation:</h3>
+                    <p>@explanation</p>
+                </div>
+            }
+
+            @if (!isCorrect && QuizState.CurrentQuestion != null)
+            {
+                var correctChoice = QuizState.CurrentQuestion.Choices.FirstOrDefault(c => c.Id == correctChoiceId);
+                if (correctChoice != null)
+                {
+                    <div class="correct-answer">
+                        <h3>Correct Answer:</h3>
+                        <p>@correctChoice.Text</p>
+                    </div>
+                }
+            }
+
+            <div class="session-progress">
+                <div class="score-summary">
+                    <div class="score-item correct">
+                        <span class="score-label">Correct</span>
+                        <span class="score-value">@QuizState.Session!.CorrectAnswers</span>
+                    </div>
+                    <div class="score-item incorrect">
+                        <span class="score-label">Incorrect</span>
+                        <span class="score-value">@QuizState.Session!.IncorrectAnswers</span>
+                    </div>
+                    <div class="score-item total">
+                        <span class="score-label">Progress</span>
+                        <span class="score-value">@QuizState.Session!.CurrentQuestionIndex / @QuizState.TotalQuestions</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                @if (QuizState.Session!.IsCompleted)
+                {
+                    <button class="btn-primary" @onclick="GoToResults">
+                        View Final Results
+                    </button>
+                }
+                else
+                {
+                    <button class="btn-primary" @onclick="NextQuestion">
+                        Next Question →
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "isCorrect")]
+    public bool isCorrect { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "explanation")]
+    public string? explanation { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "correctChoiceId")]
+    public string? correctChoiceId { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (!QuizState.HasActiveSession)
+        {
+            Navigation.NavigateTo("/quiz/setup");
+        }
+    }
+
+    private void NextQuestion()
+    {
+        Navigation.NavigateTo("/quiz/question");
+    }
+
+    private void GoToResults()
+    {
+        Navigation.NavigateTo("/quiz/results");
+    }
+
+    private void GoToSetup()
+    {
+        Navigation.NavigateTo("/quiz/setup");
+    }
+}
