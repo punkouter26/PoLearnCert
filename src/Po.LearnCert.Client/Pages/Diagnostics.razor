@@ -1,0 +1,108 @@
+@page "/diag"
+@inject HttpClient Http
+
+<div class="diagnostics-page">
+    <h1>System Diagnostics</h1>
+    <p>Health status of PoLearnCert system components.</p>
+
+    @if (isLoading)
+    {
+        <div class="loading">
+            <p>Loading health status...</p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error:</strong> @errorMessage
+        </div>
+    }
+    else if (healthReport != null)
+    {
+        <div class="health-summary">
+            <h2>Overall Status: <span class="status-@healthReport.Status.ToLower()">@healthReport.Status</span></h2>
+            <p><strong>Total Duration:</strong> @healthReport.TotalDuration</p>
+        </div>
+
+        <div class="health-checks">
+            <h3>Component Health</h3>
+            @foreach (var check in healthReport.Checks)
+            {
+                <div class="health-check-card status-@check.Status.ToLower()">
+                    <div class="check-header">
+                        <h4>@FormatCheckName(check.Name)</h4>
+                        <span class="status-badge status-@check.Status.ToLower()">@check.Status</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(check.Description))
+                    {
+                        <p class="description">@check.Description</p>
+                    }
+                    <p class="duration"><strong>Duration:</strong> @check.Duration</p>
+                    @if (!string.IsNullOrEmpty(check.Exception))
+                    {
+                        <div class="exception">
+                            <strong>Error:</strong> @check.Exception
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="refresh-section">
+            <button class="btn btn-primary" @onclick="LoadHealthStatus">Refresh</button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private HealthReport? healthReport;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHealthStatus();
+    }
+
+    private async Task LoadHealthStatus()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            healthReport = await Http.GetFromJsonAsync<HealthReport>("/api/health");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load health status: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string FormatCheckName(string name)
+    {
+        return name.Replace("_", " ")
+            .Replace("-", " ")
+            .ToUpperInvariant();
+    }
+
+    public class HealthReport
+    {
+        public string Status { get; set; } = string.Empty;
+        public List<HealthCheck> Checks { get; set; } = new();
+        public string TotalDuration { get; set; } = string.Empty;
+    }
+
+    public class HealthCheck
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string Duration { get; set; } = string.Empty;
+        public string? Exception { get; set; }
+    }
+}

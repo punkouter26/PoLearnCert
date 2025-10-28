@@ -1,0 +1,54 @@
+<testsuites id="" name="" tests="22" failures="0" skipped="0" errors="0" time="13.100574">
+<testsuite name="quiz.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="chromium" tests="6" failures="0" skipped="0" time="15.562" errors="0">
+<testcase name="Quiz Functionality › should display quiz setup page" classname="quiz.spec.ts" time="2.756">
+</testcase>
+<testcase name="Quiz Functionality › should navigate to quiz setup via navigation" classname="quiz.spec.ts" time="2.485">
+</testcase>
+<testcase name="Quiz Functionality › should display certification selection dropdown" classname="quiz.spec.ts" time="2.913">
+</testcase>
+<testcase name="Quiz Functionality › should show question count input" classname="quiz.spec.ts" time="2.673">
+</testcase>
+<testcase name="Quiz Functionality › should show start quiz button" classname="quiz.spec.ts" time="2.418">
+</testcase>
+<testcase name="Quiz Functionality › should be responsive on mobile" classname="quiz.spec.ts" time="2.317">
+</testcase>
+</testsuite>
+<testsuite name="statistics.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="chromium" tests="5" failures="0" skipped="0" time="12.623" errors="0">
+<testcase name="Statistics Dashboard › should navigate to statistics page" classname="statistics.spec.ts" time="2.616">
+</testcase>
+<testcase name="Statistics Dashboard › should display statistics container" classname="statistics.spec.ts" time="2.403">
+</testcase>
+<testcase name="Statistics Dashboard › should show loading or content" classname="statistics.spec.ts" time="2.88">
+</testcase>
+<testcase name="Statistics Dashboard › should display stat cards when data loads" classname="statistics.spec.ts" time="2.38">
+</testcase>
+<testcase name="Statistics Dashboard › should be responsive on mobile" classname="statistics.spec.ts" time="2.344">
+</testcase>
+</testsuite>
+<testsuite name="quiz.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="Mobile Chrome" tests="6" failures="0" skipped="0" time="12.916" errors="0">
+<testcase name="Quiz Functionality › should display quiz setup page" classname="quiz.spec.ts" time="2.505">
+</testcase>
+<testcase name="Quiz Functionality › should navigate to quiz setup via navigation" classname="quiz.spec.ts" time="2.38">
+</testcase>
+<testcase name="Quiz Functionality › should display certification selection dropdown" classname="quiz.spec.ts" time="2.111">
+</testcase>
+<testcase name="Quiz Functionality › should show question count input" classname="quiz.spec.ts" time="1.815">
+</testcase>
+<testcase name="Quiz Functionality › should show start quiz button" classname="quiz.spec.ts" time="2.213">
+</testcase>
+<testcase name="Quiz Functionality › should be responsive on mobile" classname="quiz.spec.ts" time="1.892">
+</testcase>
+</testsuite>
+<testsuite name="statistics.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="Mobile Chrome" tests="5" failures="0" skipped="0" time="8.736" errors="0">
+<testcase name="Statistics Dashboard › should navigate to statistics page" classname="statistics.spec.ts" time="2.309">
+</testcase>
+<testcase name="Statistics Dashboard › should display statistics container" classname="statistics.spec.ts" time="1.499">
+</testcase>
+<testcase name="Statistics Dashboard › should show loading or content" classname="statistics.spec.ts" time="1.671">
+</testcase>
+<testcase name="Statistics Dashboard › should display stat cards when data loads" classname="statistics.spec.ts" time="1.67">
+</testcase>
+<testcase name="Statistics Dashboard › should be responsive on mobile" classname="statistics.spec.ts" time="1.587">
+</testcase>
+</testsuite>
+</testsuites>

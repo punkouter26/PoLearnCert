@@ -1,0 +1,83 @@
+/* Quiz Session Setup Styles */
+
+.setup-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.setup-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.setup-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.setup-header h1 {
+    color: var(--primary-color);
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.setup-header p {
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+}
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.form-actions button {
+    min-width: 200px;
+}
+
+.loading-state,
+.error-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.loading-state {
+    color: var(--text-secondary);
+}
+
+.error-state {
+    color: var(--error-color);
+}
+
+@media (max-width: 576px) {
+    .setup-card {
+        padding: 1.5rem;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+}

@@ -1,0 +1,102 @@
+@page "/login"
+@using Microsoft.AspNetCore.Components.Forms
+@using Po.LearnCert.Shared.Contracts
+@using Po.LearnCert.Client.Features.Authentication.Services
+@inject IAuthenticationService AuthService
+@inject NavigationManager Navigation
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Login to continue your certification journey</p>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-error">
+                @_errorMessage
+            </div>
+        }
+
+        <EditForm Model="@_loginRequest" OnValidSubmit="@HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <InputText id="username" class="form-control" @bind-Value="_loginRequest.Username" placeholder="Enter your username" autofocus />
+                <ValidationMessage For="@(() => _loginRequest.Username)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_loginRequest.Password" placeholder="Enter your password" />
+                <ValidationMessage For="@(() => _loginRequest.Password)" />
+            </div>
+
+            <div class="form-group-checkbox">
+                <label>
+                    <InputCheckbox @bind-Value="_loginRequest.RememberMe" />
+                    <span>Remember me</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span class="spinner"></span>
+                    <span>Logging in...</span>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="register-link">
+            <p>Don't have an account? <a href="/register">Register here</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginRequest _loginRequest = new();
+    private bool _isLoading = false;
+    private string _errorMessage = string.Empty;
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "returnUrl")]
+    public string? ReturnUrl { get; set; }
+
+    private async Task HandleLogin()
+    {
+        _isLoading = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(_loginRequest);
+
+            if (result.Succeeded)
+            {
+                // Login successful, redirect to return URL or home
+                var redirectUrl = string.IsNullOrEmpty(ReturnUrl) ? "/" : ReturnUrl;
+                Navigation.NavigateTo(redirectUrl);
+            }
+            else
+            {
+                _errorMessage = result.Errors.Any() 
+                    ? string.Join(", ", result.Errors) 
+                    : "Invalid username or password";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An error occurred during login. Please try again.";
+            Console.WriteLine($"Login error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,129 @@
+/* Clean Professional Navigation */
+
+.navbar-toggler {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.navbar-toggler:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.navbar-toggler-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.top-row {
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+}
+
+.nav-scrollable {
+    overflow-y: auto;
+    height: calc(100vh - 3.5rem);
+    padding: 1rem 0;
+}
+
+.nav-brand {
+    padding: 0.5rem 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+}
+
+.nav-brand:hover {
+    opacity: 0.9;
+}
+
+.nav-item {
+    padding: 0.25rem 1rem;
+}
+
+.nav-item a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9375rem;
+    transition: background-color 0.15s ease;
+}
+
+.nav-item a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.nav-item a.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+@media (min-width: 641px) {
+    .navbar-toggler {
+        display: none;
+    }
+
+    .top-row {
+        display: flex;
+    }
+
+    .collapse {
+        display: block !important;
+    }
+}
+
+@media (max-width: 640px) {
+    .top-row {
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        box-shadow: var(--shadow-md);
+    }
+
+    .collapse {
+        display: none;
+        position: fixed;
+        top: 4rem;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+        z-index: 1000;
+        overflow-y: auto;
+    }
+
+    .collapse.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .nav-scrollable {
+        height: auto;
+        padding: 1rem 0;
+    }
+}

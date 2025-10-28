@@ -1,0 +1,115 @@
+@page "/register"
+@using Microsoft.AspNetCore.Components.Forms
+@using Po.LearnCert.Shared.Contracts
+@using Po.LearnCert.Client.Features.Authentication.Services
+@inject IAuthenticationService AuthService
+@inject NavigationManager Navigation
+
+<div class="register-container">
+    <div class="register-card">
+        <h2>Create Account</h2>
+        <p class="subtitle">Join PoLearnCert to start your certification journey</p>
+
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-error">
+                @_errorMessage
+            </div>
+        }
+
+        @if (_errors.Any())
+        {
+            <div class="alert alert-error">
+                <ul>
+                    @foreach (var error in _errors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <EditForm Model="@_registerRequest" OnValidSubmit="@HandleRegister">
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <InputText id="email" class="form-control" @bind-Value="_registerRequest.Email" placeholder="Enter your email" />
+                <ValidationMessage For="@(() => _registerRequest.Email)" />
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <InputText id="username" class="form-control" @bind-Value="_registerRequest.Username" placeholder="Choose a username" />
+                <ValidationMessage For="@(() => _registerRequest.Username)" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText id="password" type="password" class="form-control" @bind-Value="_registerRequest.Password" placeholder="Create a password" />
+                <ValidationMessage For="@(() => _registerRequest.Password)" />
+                <small class="form-text">Minimum 6 characters, include uppercase, lowercase, and number</small>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <InputText id="confirmPassword" type="password" class="form-control" @bind-Value="_registerRequest.ConfirmPassword" placeholder="Confirm your password" />
+                <ValidationMessage For="@(() => _registerRequest.ConfirmPassword)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary" disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <span class="spinner"></span>
+                    <span>Creating Account...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="login-link">
+            <p>Already have an account? <a href="/login">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest _registerRequest = new();
+    private bool _isLoading = false;
+    private string _errorMessage = string.Empty;
+    private List<string> _errors = new();
+
+    private async Task HandleRegister()
+    {
+        _isLoading = true;
+        _errorMessage = string.Empty;
+        _errors.Clear();
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(_registerRequest);
+
+            if (result.Succeeded)
+            {
+                // Registration successful, redirect to home or quiz page
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                _errors = result.Errors;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "An error occurred during registration. Please try again.";
+            Console.WriteLine($"Registration error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

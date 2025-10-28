@@ -1,0 +1,199 @@
+@page "/quiz/question"
+@using Po.LearnCert.Client.Features.Quiz.Services
+@using Po.LearnCert.Shared.Models
+@using Po.LearnCert.Shared.Contracts
+@inject IQuizSessionService QuizSessionService
+@inject QuizSessionState QuizState
+@inject NavigationManager Navigation
+
+<div class="quiz-question-container">
+    @if (!QuizState.HasActiveSession)
+    {
+        <div class="no-session">
+            <p>No active quiz session.</p>
+            <button @onclick="GoToSetup">Start New Quiz</button>
+        </div>
+    }
+    else if (loading)
+    {
+        <div class="loading">
+            <p>Loading question...</p>
+        </div>
+    }
+    else if (error != null)
+    {
+        <div class="error-message">
+            <p>@error</p>
+            <button @onclick="LoadCurrentQuestion">Retry</button>
+        </div>
+    }
+    else if (currentQuestion != null)
+    {
+        <div class="quiz-header">
+            <div class="progress-info">
+                <span class="question-counter">Question @QuizState.CurrentQuestionNumber of @QuizState.TotalQuestions</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @QuizState.ProgressPercentage%"></div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="score-info">
+                    <span class="correct">✓ @QuizState.Session!.CorrectAnswers</span>
+                    <span class="incorrect">✗ @QuizState.Session!.IncorrectAnswers</span>
+                </div>
+                <button class="btn-quit" @onclick="QuitTest" title="Quit test and return to main menu">
+                    Quit Test
+                </button>
+            </div>
+        </div>
+
+        <div class="question-content">
+            <h2>@currentQuestion.Text</h2>
+
+            <div class="answer-choices">
+                @foreach (var choice in currentQuestion.Choices)
+                {
+                    <button class="choice-button @GetChoiceClass(choice.Id)" 
+                            @onclick="() => SelectChoice(choice.Id)"
+                            disabled="@(selectedChoiceId != null || submitting)">
+                        @choice.Text
+                    </button>
+                }
+            </div>
+
+            @if (selectedChoiceId != null && !submitting)
+            {
+                <div class="form-actions">
+                    <button class="btn-primary" @onclick="SubmitAnswer">
+                        Submit Answer
+                    </button>
+                </div>
+            }
+
+            @if (submitting)
+            {
+                <div class="submitting">
+                    <p>Submitting answer...</p>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private QuestionDto? currentQuestion;
+    private string? selectedChoiceId;
+    private bool loading = true;
+    private bool submitting = false;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!QuizState.HasActiveSession)
+        {
+            Navigation.NavigateTo("/quiz/setup");
+            return;
+        }
+
+        QuizState.OnStateChanged += StateHasChanged;
+        await LoadCurrentQuestion();
+    }
+
+    private async Task LoadCurrentQuestion()
+    {
+        loading = true;
+        error = null;
+
+        try
+        {
+            var questionId = QuizState.GetNextQuestionId();
+            if (questionId == null)
+            {
+                Navigation.NavigateTo("/quiz/results");
+                return;
+            }
+
+            // Use certificationId as the partition key for fetching questions
+            var certificationId = QuizState.Session!.CertificationId;
+            currentQuestion = await QuizSessionService.GetQuestionAsync(certificationId, questionId);
+            QuizState.SetCurrentQuestion(currentQuestion);
+            selectedChoiceId = null;
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to load question: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void SelectChoice(string choiceId)
+    {
+        if (selectedChoiceId == null && !submitting)
+        {
+            selectedChoiceId = choiceId;
+        }
+    }
+
+    private string GetChoiceClass(string choiceId)
+    {
+        return selectedChoiceId == choiceId ? "selected" : "";
+    }
+
+    private async Task SubmitAnswer()
+    {
+        if (selectedChoiceId == null || currentQuestion == null)
+            return;
+
+        submitting = true;
+        error = null;
+
+        try
+        {
+            var request = new SubmitAnswerRequest
+            {
+                SessionId = QuizState.Session!.Id,
+                QuestionId = currentQuestion.Id,
+                SelectedChoiceId = selectedChoiceId
+            };
+
+            var response = await QuizSessionService.SubmitAnswerAsync(request);
+            
+            // Update the session state with the new progress from the server
+            QuizState.Session!.CurrentQuestionIndex = response.CurrentQuestionIndex;
+            QuizState.Session!.CorrectAnswers = response.CorrectAnswers;
+            QuizState.Session!.IncorrectAnswers = response.IncorrectAnswers;
+            QuizState.Session!.IsCompleted = response.IsSessionComplete;
+            
+            QuizState.RecordAnswer(currentQuestion.Id);
+
+            // Navigate to feedback page with the response
+            Navigation.NavigateTo($"/quiz/feedback?isCorrect={response.IsCorrect}&explanation={Uri.EscapeDataString(response.Explanation ?? "")}&correctChoiceId={response.CorrectChoiceId}");
+        }
+        catch (Exception ex)
+        {
+            error = $"Failed to submit answer: {ex.Message}";
+            submitting = false;
+        }
+    }
+
+    private void GoToSetup()
+    {
+        Navigation.NavigateTo("/quiz/setup");
+    }
+
+    private void QuitTest()
+    {
+        // Clear the current session state
+        QuizState.ClearSession();
+        // Navigate back to home page
+        Navigation.NavigateTo("/");
+    }
+
+    public void Dispose()
+    {
+        QuizState.OnStateChanged -= StateHasChanged;
+    }
+}

@@ -1,0 +1,177 @@
+.diagnostics-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.diagnostics-page h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.diagnostics-page > p {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: #7f8c8d;
+}
+
+.health-summary {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.health-summary h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.health-checks {
+    margin-bottom: 2rem;
+}
+
+.health-checks h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.health-check-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid;
+    border-radius: 6px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.health-check-card.status-healthy {
+    border-left-color: #27ae60;
+}
+
+.health-check-card.status-degraded {
+    border-left-color: #f39c12;
+}
+
+.health-check-card.status-unhealthy {
+    border-left-color: #e74c3c;
+}
+
+.check-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.check-header h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.status-healthy {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.status-degraded {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.status-unhealthy {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-healthy {
+    color: #27ae60;
+}
+
+.status-degraded {
+    color: #f39c12;
+}
+
+.status-unhealthy {
+    color: #e74c3c;
+}
+
+.description {
+    color: #7f8c8d;
+    margin-bottom: 0.5rem;
+}
+
+.duration {
+    color: #7f8c8d;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.exception {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background-color: #f8d7da;
+    border-radius: 4px;
+    color: #721c24;
+    font-size: 0.875rem;
+}
+
+.refresh-section {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.btn {
+    padding: 0.625rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+}
+
+@media (max-width: 768px) {
+    .diagnostics-page {
+        padding: 1rem;
+    }
+
+    .diagnostics-page h1 {
+        font-size: 1.5rem;
+    }
+
+    .check-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
