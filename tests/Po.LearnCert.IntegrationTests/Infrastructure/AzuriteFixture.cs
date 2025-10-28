@@ -15,7 +15,7 @@ public class AzuriteFixture : IDisposable
     public AzuriteFixture()
     {
         StartAzurite();
-        
+
         // Wait for Azurite to be ready
         Thread.Sleep(3000);
     }

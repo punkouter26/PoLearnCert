@@ -38,7 +38,7 @@ public class QuestionsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var question = await _questionRepository.GetQuestionByIdAsync(certificationId, id, cancellationToken);
-        
+
         if (question == null)
         {
             return NotFound(new { message = $"Question {id} not found." });

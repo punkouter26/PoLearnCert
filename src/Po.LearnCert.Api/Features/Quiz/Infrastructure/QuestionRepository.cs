@@ -16,7 +16,7 @@ public class QuestionRepository : IQuestionRepository
         _logger = logger;
         _questionsTable = tableServiceClient.GetTableClient("PoLearnCertQuestions");
         _choicesTable = tableServiceClient.GetTableClient("PoLearnCertAnswerChoices");
-        
+
         _questionsTable.CreateIfNotExists();
         _choicesTable.CreateIfNotExists();
     }
@@ -25,12 +25,12 @@ public class QuestionRepository : IQuestionRepository
     {
         var questions = new List<QuestionEntity>();
         var filter = $"PartitionKey eq '{subtopicId}'";
-        
+
         await foreach (var question in _questionsTable.QueryAsync<QuestionEntity>(filter, cancellationToken: cancellationToken))
         {
             questions.Add(question);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} questions for subtopic {SubtopicId}", questions.Count, subtopicId);
         return questions;
     }
@@ -40,12 +40,12 @@ public class QuestionRepository : IQuestionRepository
         var questions = new List<QuestionEntity>();
         // Query by PartitionKey (CertificationId) for efficient table storage queries
         var filter = $"PartitionKey eq '{certificationId}'";
-        
+
         await foreach (var question in _questionsTable.QueryAsync<QuestionEntity>(filter, cancellationToken: cancellationToken))
         {
             questions.Add(question);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} questions for certification {CertificationId}", questions.Count, certificationId);
         return questions;
     }
@@ -69,12 +69,12 @@ public class QuestionRepository : IQuestionRepository
     {
         var choices = new List<AnswerChoiceEntity>();
         var filter = $"PartitionKey eq '{questionId}'";
-        
+
         await foreach (var choice in _choicesTable.QueryAsync<AnswerChoiceEntity>(filter, cancellationToken: cancellationToken))
         {
             choices.Add(choice);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} answer choices for question {QuestionId}", choices.Count, questionId);
         return choices.OrderBy(c => c.Order).ToList();
     }
@@ -82,7 +82,7 @@ public class QuestionRepository : IQuestionRepository
     public async Task<IEnumerable<QuestionEntity>> GetRandomQuestionsAsync(string certificationId, string? subtopicId, int count, CancellationToken cancellationToken = default)
     {
         IEnumerable<QuestionEntity> allQuestions;
-        
+
         if (!string.IsNullOrEmpty(subtopicId))
         {
             allQuestions = await GetQuestionsBySubtopicAsync(subtopicId, cancellationToken);
@@ -91,13 +91,13 @@ public class QuestionRepository : IQuestionRepository
         {
             allQuestions = await GetQuestionsByCertificationAsync(certificationId, cancellationToken);
         }
-        
+
         var random = new Random();
         var selectedQuestions = allQuestions.OrderBy(x => random.Next()).Take(count).ToList();
-        
-        _logger.LogInformation("Selected {Count} random questions from {TotalCount} available", 
+
+        _logger.LogInformation("Selected {Count} random questions from {TotalCount} available",
             selectedQuestions.Count, allQuestions.Count());
-        
+
         return selectedQuestions;
     }
 }

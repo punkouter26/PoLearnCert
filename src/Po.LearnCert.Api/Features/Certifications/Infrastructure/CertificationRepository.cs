@@ -16,7 +16,7 @@ public class CertificationRepository : ICertificationRepository
         _logger = logger;
         _certificationsTable = tableServiceClient.GetTableClient("PoLearnCertCertifications");
         _subtopicsTable = tableServiceClient.GetTableClient("PoLearnCertSubtopics");
-        
+
         _certificationsTable.CreateIfNotExists();
         _subtopicsTable.CreateIfNotExists();
     }
@@ -24,12 +24,12 @@ public class CertificationRepository : ICertificationRepository
     public async Task<IEnumerable<CertificationEntity>> GetAllCertificationsAsync(CancellationToken cancellationToken = default)
     {
         var certifications = new List<CertificationEntity>();
-        
+
         await foreach (var cert in _certificationsTable.QueryAsync<CertificationEntity>(cancellationToken: cancellationToken))
         {
             certifications.Add(cert);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} certifications", certifications.Count);
         return certifications;
     }
@@ -52,12 +52,12 @@ public class CertificationRepository : ICertificationRepository
     {
         var subtopics = new List<SubtopicEntity>();
         var filter = $"PartitionKey eq '{certificationId}'";
-        
+
         await foreach (var subtopic in _subtopicsTable.QueryAsync<SubtopicEntity>(filter, cancellationToken: cancellationToken))
         {
             subtopics.Add(subtopic);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} subtopics for certification {CertificationId}", subtopics.Count, certificationId);
         return subtopics;
     }

@@ -1,0 +1,182 @@
+@page "/leaderboards"
+@using Po.LearnCert.Client.Features.Leaderboards.Services
+@using Po.LearnCert.Shared.Models
+@inject ILeaderboardService LeaderboardService
+@inject ILogger<LeaderboardView> Logger
+
+<PageTitle>Leaderboards - PoLearnCert</PageTitle>
+
+<div class="leaderboard-container">
+    <h1>🏆 Leaderboards</h1>
+    
+    <LeaderboardFilters
+        OnFilterChanged="HandleFilterChanged"
+        IsLoading="@isLoading" />
+
+    @if (isLoading)
+    {
+        <div class="loading-spinner">
+            <p>Loading leaderboard...</p>
+        </div>
+    }
+    else if (leaderboard == null || !leaderboard.Entries.Any())
+    {
+        <div class="no-data">
+            <p>No leaderboard entries found for this certification and time period.</p>
+            <p>Be the first to take a quiz!</p>
+        </div>
+    }
+    else
+    {
+        <div class="leaderboard-header">
+            <h2>@leaderboard.CertificationName</h2>
+            <p class="time-period">@GetTimePeriodDisplay(leaderboard.TimePeriod)</p>
+            <p class="total-entries">Total participants: @leaderboard.TotalEntries</p>
+        </div>
+
+        <div class="leaderboard-table">
+            <div class="leaderboard-row header-row">
+                <div class="rank-col">Rank</div>
+                <div class="user-col">User</div>
+                <div class="score-col">Best Score</div>
+                <div class="quizzes-col">Quizzes</div>
+                <div class="avg-col">Avg Score</div>
+                <div class="date-col">Last Attempt</div>
+            </div>
+
+            @foreach (var entry in leaderboard.Entries)
+            {
+                <div class="leaderboard-row @(entry.IsCurrentUser ? "current-user" : "")">
+                    <div class="rank-col">
+                        <span class="rank-badge @GetRankClass(entry.Rank)">
+                            @if (entry.Rank <= 3)
+                            {
+                                <span class="rank-medal">@GetMedalEmoji(entry.Rank)</span>
+                            }
+                            else
+                            {
+                                <span>#@entry.Rank</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="user-col">
+                        <strong>@entry.Username</strong>
+                        @if (entry.IsCurrentUser)
+                        {
+                            <span class="you-badge">YOU</span>
+                        }
+                    </div>
+                    <div class="score-col">
+                        <span class="best-score">@entry.BestScore%</span>
+                    </div>
+                    <div class="quizzes-col">@entry.QuizzesTaken</div>
+                    <div class="avg-col">@entry.AverageScore.ToString("F1")%</div>
+                    <div class="date-col">@entry.LastAttemptDate.ToString("MMM dd, yyyy")</div>
+                </div>
+            }
+        </div>
+
+        @if (leaderboard.TotalEntries > currentTake)
+        {
+            <div class="pagination">
+                @if (currentSkip > 0)
+                {
+                    <button class="btn-page" @onclick="LoadPreviousPage">← Previous</button>
+                }
+                
+                <span class="page-info">
+                    Showing @(currentSkip + 1) - @(Math.Min(currentSkip + currentTake, leaderboard.TotalEntries)) of @leaderboard.TotalEntries
+                </span>
+
+                @if (currentSkip + currentTake < leaderboard.TotalEntries)
+                {
+                    <button class="btn-page" @onclick="LoadNextPage">Next →</button>
+                }
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private LeaderboardDto? leaderboard;
+    private bool isLoading = true;
+    private string selectedCertId = "AZ-900";
+    private string selectedTimePeriod = "AllTime";
+    private int currentSkip = 0;
+    private int currentTake = 50;
+    private string? currentUserId = "user123"; // TODO: Get from auth context
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLeaderboard();
+    }
+
+    private async Task HandleFilterChanged((string certId, string timePeriod) filter)
+    {
+        selectedCertId = filter.certId;
+        selectedTimePeriod = filter.timePeriod;
+        currentSkip = 0; // Reset pagination
+        await LoadLeaderboard();
+    }
+
+    private async Task LoadLeaderboard()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            leaderboard = await LeaderboardService.GetLeaderboardAsync(
+                selectedCertId,
+                selectedTimePeriod,
+                currentSkip,
+                currentTake,
+                currentUserId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading leaderboard");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadNextPage()
+    {
+        currentSkip += currentTake;
+        await LoadLeaderboard();
+    }
+
+    private async Task LoadPreviousPage()
+    {
+        currentSkip = Math.Max(0, currentSkip - currentTake);
+        await LoadLeaderboard();
+    }
+
+    private string GetTimePeriodDisplay(string timePeriod) => timePeriod switch
+    {
+        "AllTime" => "All Time Rankings",
+        "Monthly" => "This Month",
+        "Weekly" => "This Week",
+        _ => timePeriod
+    };
+
+    private string GetRankClass(int rank) => rank switch
+    {
+        1 => "rank-gold",
+        2 => "rank-silver",
+        3 => "rank-bronze",
+        _ => ""
+    };
+
+    private string GetMedalEmoji(int rank) => rank switch
+    {
+        1 => "🥇",
+        2 => "🥈",
+        3 => "🥉",
+        _ => ""
+    };
+}

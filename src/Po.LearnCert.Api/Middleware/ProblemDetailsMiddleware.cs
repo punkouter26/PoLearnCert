@@ -55,7 +55,7 @@ public class ProblemDetailsMiddleware
             UnauthorizedAccessException => (HttpStatusCode.Unauthorized, "Unauthorized", "You are not authorized to access this resource"),
             KeyNotFoundException => (HttpStatusCode.NotFound, "Not Found", exception.Message),
             ArgumentException => (HttpStatusCode.BadRequest, "Bad Request", exception.Message),
-            _ => (HttpStatusCode.InternalServerError, "Internal Server Error", 
+            _ => (HttpStatusCode.InternalServerError, "Internal Server Error",
                   _environment.IsDevelopment() ? exception.Message : "An unexpected error occurred")
         };
 

@@ -28,7 +28,7 @@ public class CertificationService : ICertificationService
     public async Task<CertificationDto?> GetCertificationByIdAsync(string certificationId)
     {
         var response = await _httpClient.GetAsync($"api/certifications/{certificationId}");
-        
+
         if (!response.IsSuccessStatusCode)
         {
             return null;

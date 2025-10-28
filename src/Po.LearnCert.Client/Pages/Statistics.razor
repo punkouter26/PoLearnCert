@@ -1,0 +1,354 @@
+@page "/statistics"
+@page "/stats"
+@using Po.LearnCert.Shared.Models
+@using Po.LearnCert.Client.Features.Statistics
+@using Po.LearnCert.Client.Features.Statistics.Services
+@using Microsoft.AspNetCore.Components.Web
+@inject HttpClient Http
+@inject IStatisticsService StatisticsService
+@inject IJSRuntime JSRuntime
+
+<head>
+    <title>Performance Statistics - PoLearnCert</title>
+</head>
+
+<div class="statistics-container">
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-chart-bar"></i>
+            Performance Statistics
+        </h1>
+        <p class="page-subtitle">Track your learning progress and identify areas for improvement</p>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-section">
+            <div class="loading-spinner"></div>
+            <p>Loading your performance data...</p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="error-section">
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>@errorMessage</span>
+            </div>
+        </div>
+    }
+    else if (userStats != null)
+    {
+        <!-- Overall Statistics -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon sessions">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@userStats.TotalSessions</h3>
+                    <p>Sessions Completed</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon accuracy">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@userStats.OverallAccuracy.ToString("F1")%</h3>
+                    <p>Overall Accuracy</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon average">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@userStats.AverageScore.ToString("F1")%</h3>
+                    <p>Average Score</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon best">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@userStats.BestScore.ToString("F1")%</h3>
+                    <p>Best Score</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon time">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@FormatStudyTime(userStats.TotalStudyTime)</h3>
+                    <p>Total Study Time</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon questions">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>@userStats.TotalQuestionsAnswered</h3>
+                    <p>Questions Answered</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certification Performance -->
+        @if (userStats.CertificationPerformance.Any())
+        {
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-certificate"></i>
+                    Certification Performance
+                </h2>
+                
+                <div class="certification-grid">
+                    @foreach (var cert in userStats.CertificationPerformance)
+                    {
+                        <div class="certification-card">
+                            <div class="cert-header">
+                                <h3>@cert.CertificationName</h3>
+                                <div class="cert-score @GetScoreClass(cert.BestScore)">
+                                    @cert.BestScore.ToString("F1")%
+                                </div>
+                            </div>
+                            
+                            <div class="cert-stats">
+                                <div class="cert-stat">
+                                    <span class="label">Sessions:</span>
+                                    <span class="value">@cert.SessionCount</span>
+                                </div>
+                                <div class="cert-stat">
+                                    <span class="label">Average:</span>
+                                    <span class="value">@cert.AverageScore.ToString("F1")%</span>
+                                </div>
+                                <div class="cert-stat">
+                                    <span class="label">Accuracy:</span>
+                                    <span class="value">@cert.Accuracy.ToString("F1")%</span>
+                                </div>
+                                <div class="cert-stat">
+                                    <span class="label">Questions:</span>
+                                    <span class="value">@cert.QuestionsAnswered</span>
+                                </div>
+                            </div>
+                            
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @cert.Accuracy%"></div>
+                            </div>
+                            
+                            <button class="btn btn-secondary" @onclick="() => ViewSubtopicPerformance(cert.CertificationId)">
+                                View Subtopics
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Subtopic Performance Chart Component -->
+        <SubtopicPerformanceChart Performance="@subtopicPerformance" />
+
+        <!-- Progress Trend Chart Component -->
+        @if (sessionHistory != null && sessionHistory.Any())
+        {
+            <ProgressTrendChart SessionHistory="@sessionHistory" />
+        }
+
+        <!-- Subtopic Performance (existing detail view) -->
+        @if (selectedCertificationId != null && subtopicPerformance.Any())
+        {
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i>
+                    Subtopic Performance
+                    <button class="btn btn-outline btn-sm" @onclick="ClearSubtopicView">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </h2>
+                
+                <div class="subtopic-grid">
+                    @foreach (var subtopic in subtopicPerformance.OrderBy(s => s.Accuracy))
+                    {
+                        <div class="subtopic-card @GetPerformanceLevelClass(subtopic.PerformanceLevel)">
+                            <div class="subtopic-header">
+                                <h4>@subtopic.SubtopicName</h4>
+                                <div class="performance-badge">
+                                    @GetPerformanceLevelText(subtopic.PerformanceLevel)
+                                </div>
+                            </div>
+                            
+                            <div class="subtopic-stats">
+                                <div class="stat-row">
+                                    <span>Accuracy:</span>
+                                    <strong>@subtopic.Accuracy.ToString("F1")%</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Questions:</span>
+                                    <strong>@subtopic.CorrectAnswers/@subtopic.QuestionsAnswered</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>Practice Sessions:</span>
+                                    <strong>@subtopic.PracticeCount</strong>
+                                </div>
+                                @if (subtopic.LastPracticedDate.HasValue)
+                                {
+                                    <div class="stat-row">
+                                        <span>Last Practiced:</span>
+                                        <strong>@subtopic.LastPracticedDate.Value.ToString("MMM dd, yyyy")</strong>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="progress-bar">
+                                <div class="progress-fill @GetPerformanceLevelClass(subtopic.PerformanceLevel)" 
+                                     style="width: @subtopic.Accuracy%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fas fa-chart-bar"></i>
+            <h3>No Statistics Available</h3>
+            <p>Complete your first quiz session to see your performance statistics.</p>
+            <a href="/quiz" class="btn btn-primary">Start First Quiz</a>
+        </div>
+    }
+</div>
+
+@code {
+    private UserStatisticsDto? userStats;
+    private List<SubtopicPerformanceDto> subtopicPerformance = new();
+    private List<SessionSummaryDto> sessionHistory = new();
+    private string? selectedCertificationId;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserStatistics();
+    }
+
+    private async Task LoadUserStatistics()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            // For now, using a placeholder user ID. In a real app, this would come from authentication
+            var userId = "user1";
+            
+            var response = await Http.GetAsync($"api/userstatistics/{userId}");
+            if (response.IsSuccessStatusCode)
+            {
+                userStats = await response.Content.ReadFromJsonAsync<UserStatisticsDto>();
+            }
+            else
+            {
+                errorMessage = "Failed to load statistics data.";
+            }
+            
+            // Load session history using StatisticsService
+            sessionHistory = await StatisticsService.GetSessionHistoryAsync(userId, limit: 10);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading statistics: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ViewSubtopicPerformance(string certificationId)
+    {
+        try
+        {
+            selectedCertificationId = certificationId;
+            var userId = "user1";
+            
+            var response = await Http.GetAsync($"api/userstatistics/{userId}/subtopics?certificationId={certificationId}");
+            if (response.IsSuccessStatusCode)
+            {
+                subtopicPerformance = await response.Content.ReadFromJsonAsync<List<SubtopicPerformanceDto>>() ?? new();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading subtopic performance: {ex.Message}";
+        }
+    }
+
+    private void ClearSubtopicView()
+    {
+        selectedCertificationId = null;
+        subtopicPerformance.Clear();
+    }
+
+    private string FormatStudyTime(TimeSpan timeSpan)
+    {
+        if (timeSpan.TotalHours >= 1)
+        {
+            return $"{timeSpan.Hours}h {timeSpan.Minutes}m";
+        }
+        else if (timeSpan.TotalMinutes >= 1)
+        {
+            return $"{timeSpan.Minutes}m";
+        }
+        else
+        {
+            return $"{timeSpan.Seconds}s";
+        }
+    }
+
+    private string GetScoreClass(decimal score)
+    {
+        return score switch
+        {
+            >= 95m => "excellent",
+            >= 85m => "good",
+            >= 70m => "average",
+            >= 50m => "below-average",
+            _ => "poor"
+        };
+    }
+
+    private string GetPerformanceLevelClass(PerformanceLevel level)
+    {
+        return level switch
+        {
+            PerformanceLevel.Mastered => "mastered",
+            PerformanceLevel.Excellent => "excellent",
+            PerformanceLevel.Good => "good",
+            PerformanceLevel.Basic => "basic",
+            _ => "needs-improvement"
+        };
+    }
+
+    private string GetPerformanceLevelText(PerformanceLevel level)
+    {
+        return level switch
+        {
+            PerformanceLevel.Mastered => "Mastered",
+            PerformanceLevel.Excellent => "Excellent",
+            PerformanceLevel.Good => "Good",
+            PerformanceLevel.Basic => "Basic",
+            _ => "Needs Work"
+        };
+    }
+}

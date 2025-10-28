@@ -5,8 +5,14 @@ using Po.LearnCert.Api.Features.Quiz.Infrastructure;
 using Po.LearnCert.Api.Features.Quiz.Services;
 using Po.LearnCert.Api.Features.Certifications.Infrastructure;
 using Po.LearnCert.Api.Features.Certifications.Services;
+using Po.LearnCert.Api.Features.Leaderboards.Infrastructure;
+using Po.LearnCert.Api.Features.Leaderboards.Services;
+using Po.LearnCert.Api.Repositories;
+using Po.LearnCert.Api.Services;
+using Po.LearnCert.Api.Health;
 using Azure.Data.Tables;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +37,7 @@ try
 
     // Add services to the container
     builder.Services.AddControllers();
-    
+
     // Configure Swagger/OpenAPI
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
@@ -48,31 +54,15 @@ try
         });
     });
 
-    // Configure CORS for Blazor Client
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("BlazorClient", policy =>
-        {
-            policy.WithOrigins(
-                    "http://localhost:5000",
-                    "https://localhost:5001",
-                    "http://localhost:5173", // Vite dev server
-                    "https://localhost:5173")
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials();
-        });
-    });
-
     // Configure Azure Table Storage
-    var azureTableConnectionString = builder.Configuration["AzureTableStorage:ConnectionString"] 
+    var azureTableConnectionString = builder.Configuration["AzureTableStorage:ConnectionString"]
         ?? builder.Configuration.GetConnectionString("AzureTableStorage");
     builder.Services.AddSingleton(new TableServiceClient(azureTableConnectionString));
 
     // Configure ASP.NET Core Identity
     builder.Services.AddScoped<IUserStore<UserEntity>, TableUserStore>();
     builder.Services.AddScoped<IRoleStore<RoleEntity>, TableRoleStore>();
-    
+
     builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
     {
         // Password settings
@@ -110,10 +100,23 @@ try
     builder.Services.AddScoped<ICertificationRepository, CertificationRepository>();
     builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
     builder.Services.AddScoped<IQuizSessionRepository, QuizSessionRepository>();
-    
+    builder.Services.AddScoped<IUserStatisticsRepository, UserStatisticsRepository>();
+    builder.Services.AddScoped<ISubtopicRepository, SubtopicRepository>();
+    builder.Services.AddScoped<ILeaderboardRepository, LeaderboardRepository>();
+
     // Register services
     builder.Services.AddScoped<ICertificationService, CertificationService>();
     builder.Services.AddScoped<IQuizSessionService, QuizSessionService>();
+    builder.Services.AddScoped<IUserStatisticsService, UserStatisticsService>();
+    builder.Services.AddScoped<LeaderboardService>();
+    builder.Services.AddScoped<Po.LearnCert.Api.Features.Authentication.Services.AuthenticationService>();
+
+    // Configure Health Checks
+    builder.Services.AddHealthChecks()
+        .AddCheck<AzureTableStorageHealthCheck>(
+            "azure_table_storage",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: new[] { "database", "storage" });
 
     var app = builder.Build();
 
@@ -133,19 +136,40 @@ try
     }
 
     app.UseHttpsRedirection();
-    
+
     // Serve Blazor WebAssembly static files
     app.UseBlazorFrameworkFiles();
     app.UseStaticFiles();
-    
-    // Use CORS
-    app.UseCors("BlazorClient");
-    
+
     app.UseRouting();
-    
+
     app.UseAuthentication();
     app.UseAuthorization();
-    
+
+    // Map Health Checks endpoint
+    app.MapHealthChecks("/api/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            var result = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                status = report.Status.ToString(),
+                checks = report.Entries.Select(e => new
+                {
+                    name = e.Key,
+                    status = e.Value.Status.ToString(),
+                    description = e.Value.Description,
+                    duration = e.Value.Duration.ToString(),
+                    exception = e.Value.Exception?.Message,
+                    data = e.Value.Data
+                }),
+                totalDuration = report.TotalDuration.ToString()
+            });
+            await context.Response.WriteAsync(result);
+        }
+    });
+
     app.MapControllers();
     app.MapFallbackToFile("index.html");
 
@@ -184,3 +208,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// Make Program class accessible for integration tests
+public partial class Program { }

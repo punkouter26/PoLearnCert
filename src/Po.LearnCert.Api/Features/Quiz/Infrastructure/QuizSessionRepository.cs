@@ -17,7 +17,7 @@ public class QuizSessionRepository : IQuizSessionRepository
         _logger = logger;
         _sessionsTable = tableServiceClient.GetTableClient("PoLearnCertQuizSessions");
         _answersTable = tableServiceClient.GetTableClient("PoLearnCertSessionAnswers");
-        
+
         _sessionsTable.CreateIfNotExists();
         _answersTable.CreateIfNotExists();
     }
@@ -54,12 +54,12 @@ public class QuizSessionRepository : IQuizSessionRepository
     {
         var sessions = new List<QuizSessionEntity>();
         var filter = $"PartitionKey eq '{userId}'";
-        
+
         await foreach (var session in _sessionsTable.QueryAsync<QuizSessionEntity>(filter, cancellationToken: cancellationToken))
         {
             sessions.Add(session);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} sessions for user {UserId}", sessions.Count, userId);
         return sessions.OrderByDescending(s => s.StartedAt).ToList();
     }
@@ -67,7 +67,7 @@ public class QuizSessionRepository : IQuizSessionRepository
     public async Task<SessionAnswerEntity> RecordAnswerAsync(SessionAnswerEntity answer, CancellationToken cancellationToken = default)
     {
         await _answersTable.UpsertEntityAsync(answer, TableUpdateMode.Replace, cancellationToken);
-        _logger.LogInformation("Recorded answer for session {SessionId}, question {QuestionId}", 
+        _logger.LogInformation("Recorded answer for session {SessionId}, question {QuestionId}",
             answer.SessionId, answer.QuestionId);
         return answer;
     }
@@ -76,12 +76,12 @@ public class QuizSessionRepository : IQuizSessionRepository
     {
         var answers = new List<SessionAnswerEntity>();
         var filter = $"PartitionKey eq '{sessionId}'";
-        
+
         await foreach (var answer in _answersTable.QueryAsync<SessionAnswerEntity>(filter, cancellationToken: cancellationToken))
         {
             answers.Add(answer);
         }
-        
+
         _logger.LogDebug("Retrieved {Count} answers for session {SessionId}", answers.Count, sessionId);
         return answers;
     }

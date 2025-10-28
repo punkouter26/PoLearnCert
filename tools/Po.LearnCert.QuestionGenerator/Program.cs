@@ -5,6 +5,10 @@ using OpenAI.Chat;
 using System.ClientModel;
 using System.Text.Json;
 
+// Parse command-line arguments
+var questionsPerSubtopicArg = args.Length > 0 ? args[0] : null;
+var skipConfirmation = args.Length > 1 && (args[1] == "-y" || args[1] == "--yes");
+
 // Build configuration
 var configuration = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -47,35 +51,65 @@ Console.WriteLine($"🤖 AI Model: {openAiDeployment}");
 Console.WriteLine();
 
 // ============================================================================
+// COMMAND-LINE USAGE
+// ============================================================================
+
+if (args.Length > 0 && (args[0] == "-h" || args[0] == "--help"))
+{
+    Console.WriteLine("Usage: Po.LearnCert.QuestionGenerator [questionsPerSubtopic] [-y|--yes]");
+    Console.WriteLine();
+    Console.WriteLine("Arguments:");
+    Console.WriteLine("  questionsPerSubtopic  Number of questions to generate per subtopic (default: 25)");
+    Console.WriteLine("  -y, --yes            Skip confirmation prompt");
+    Console.WriteLine();
+    Console.WriteLine("Examples:");
+    Console.WriteLine("  Po.LearnCert.QuestionGenerator              # Interactive mode");
+    Console.WriteLine("  Po.LearnCert.QuestionGenerator 50           # Generate 50 questions per subtopic");
+    Console.WriteLine("  Po.LearnCert.QuestionGenerator 100 -y       # Generate 100 questions without confirmation");
+    return;
+}
+
+// ============================================================================
 // PROMPT USER FOR NUMBER OF QUESTIONS
 // ============================================================================
 
 int questionsPerSubtopic;
-while (true)
+
+// Check if provided via command-line
+if (!string.IsNullOrWhiteSpace(questionsPerSubtopicArg) && int.TryParse(questionsPerSubtopicArg, out var cmdLineValue) && cmdLineValue > 0)
 {
-    Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.Write($"📊 Enter number of questions to generate per subtopic (default: {defaultQuestionsPerSubtopic}): ");
-    Console.ResetColor();
-    
-    var input = Console.ReadLine();
-    
-    // Use default if user presses Enter
-    if (string.IsNullOrWhiteSpace(input))
+    questionsPerSubtopic = cmdLineValue;
+    Console.WriteLine($"📊 Questions per subtopic: {questionsPerSubtopic} (from command-line)");
+}
+else
+{
+    // Interactive mode
+    while (true)
     {
-        questionsPerSubtopic = defaultQuestionsPerSubtopic;
-        break;
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write($"📊 Enter number of questions to generate per subtopic (default: {defaultQuestionsPerSubtopic}): ");
+        Console.ResetColor();
+
+        var input = Console.ReadLine();
+
+        // Use default if user presses Enter
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            questionsPerSubtopic = defaultQuestionsPerSubtopic;
+            break;
+        }
+
+        // Validate input
+        if (int.TryParse(input, out var parsedValue) && parsedValue > 0)
+        {
+            questionsPerSubtopic = parsedValue;
+            break;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("❌ Invalid input. Please enter a positive number.");
+        Console.ResetColor();
     }
-    
-    // Validate input
-    if (int.TryParse(input, out var parsedValue) && parsedValue > 0)
-    {
-        questionsPerSubtopic = parsedValue;
-        break;
-    }
-    
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("❌ Invalid input. Please enter a positive number.");
-    Console.ResetColor();
 }
 
 // ============================================================================
@@ -101,17 +135,26 @@ Console.WriteLine($"  🎯 Total questions: {totalQuestions}");
 Console.WriteLine($"  ⏱️  Estimated time: ~{estimatedMinutes} minutes");
 Console.WriteLine();
 
-Console.ForegroundColor = ConsoleColor.Yellow;
-Console.Write("⚠️  This will use Azure OpenAI API. Continue? (Y/n): ");
-Console.ResetColor();
-
-var confirmation = Console.ReadLine()?.Trim().ToLower();
-if (confirmation == "n" || confirmation == "no")
+if (!skipConfirmation)
 {
     Console.ForegroundColor = ConsoleColor.Yellow;
-    Console.WriteLine("❌ Generation cancelled by user.");
+    Console.Write("⚠️  This will use Azure OpenAI API. Continue? (Y/n): ");
     Console.ResetColor();
-    return;
+
+    var confirmation = Console.ReadLine()?.Trim().ToLower();
+    if (confirmation == "n" || confirmation == "no")
+    {
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("❌ Generation cancelled by user.");
+        Console.ResetColor();
+        return;
+    }
+}
+else
+{
+    Console.ForegroundColor = ConsoleColor.Green;
+    Console.WriteLine("✓ Confirmation skipped (--yes flag)");
+    Console.ResetColor();
 }
 
 Console.WriteLine();
@@ -243,10 +286,10 @@ async Task GenerateAndSeedQuestions(TableServiceClient serviceClient, ChatClient
         for (int i = 1; i <= questionsPerSubtopic; i++)
         {
             var questionId = $"Q{subtopicId}-{i:D3}";
-            
+
             // Generate question using Azure OpenAI
             var generatedQuestion = await GenerateQuestion(chatClient, subtopicName!, certificationId!);
-            
+
             if (generatedQuestion != null)
             {
                 // Create question entity
@@ -311,9 +354,14 @@ async Task GenerateAndSeedQuestions(TableServiceClient serviceClient, ChatClient
 
 async Task<GeneratedQuestion?> GenerateQuestion(ChatClient chatClient, string subtopicName, string certificationId)
 {
-    try
+    const int maxRetries = 3;
+    const int baseDelayMs = 1000; // Start with 1 second
+
+    for (int attempt = 0; attempt <= maxRetries; attempt++)
     {
-        var systemPrompt = @"You are an expert certification exam question writer. Generate realistic, high-quality multiple-choice questions for IT certification exams.
+        try
+        {
+            var systemPrompt = @"You are an expert certification exam question writer. Generate realistic, high-quality multiple-choice questions for IT certification exams.
 
 Requirements:
 1. Generate ONE question with EXACTLY 4 answer choices
@@ -337,80 +385,104 @@ JSON Format:
   ]
 }";
 
-        var userPrompt = $"Generate a certification exam question about '{subtopicName}' for the {certificationId} certification. Make it practical and scenario-based.";
+            var userPrompt = $"Generate a certification exam question about '{subtopicName}' for the {certificationId} certification. Make it practical and scenario-based.";
 
-        var messages = new List<ChatMessage>
-        {
-            new SystemChatMessage(systemPrompt),
-            new UserChatMessage(userPrompt)
-        };
-
-        var response = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions
-        {
-            Temperature = 0.7f,
-            MaxOutputTokenCount = 500
-        });
-
-        var content = response.Value.Content[0].Text;
-        
-        // Clean up markdown formatting if present
-        content = content.Trim();
-        if (content.StartsWith("```json"))
-        {
-            content = content.Substring(7);
-            if (content.EndsWith("```"))
-                content = content.Substring(0, content.Length - 3);
-            content = content.Trim();
-        }
-        
-        // Parse JSON response
-        var jsonDocument = JsonDocument.Parse(content);
-        var root = jsonDocument.RootElement;
-
-        var question = new GeneratedQuestion
-        {
-            Text = root.GetProperty("text").GetString()!,
-            Explanation = root.GetProperty("explanation").GetString()!,
-            DifficultyLevel = root.GetProperty("difficultyLevel").GetString()!,
-            Choices = new List<GeneratedChoice>()
-        };
-
-        foreach (var choice in root.GetProperty("choices").EnumerateArray())
-        {
-            question.Choices.Add(new GeneratedChoice
+            var messages = new List<ChatMessage>
             {
-                Text = choice.GetProperty("text").GetString()!,
-                IsCorrect = choice.GetProperty("isCorrect").GetBoolean()
+                new SystemChatMessage(systemPrompt),
+                new UserChatMessage(userPrompt)
+            };
+
+            var response = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions
+            {
+                Temperature = 0.7f,
+                MaxOutputTokenCount = 500
             });
-        }
 
-        // Validate exactly 4 choices and exactly 1 correct answer
-        if (question.Choices.Count != 4)
+            var content = response.Value.Content[0].Text;
+
+            // Clean up markdown formatting if present
+            content = content.Trim();
+            if (content.StartsWith("```json"))
+            {
+                content = content.Substring(7);
+                if (content.EndsWith("```"))
+                    content = content.Substring(0, content.Length - 3);
+                content = content.Trim();
+            }
+
+            // Parse JSON response
+            var jsonDocument = JsonDocument.Parse(content);
+            var root = jsonDocument.RootElement;
+
+            var question = new GeneratedQuestion
+            {
+                Text = root.GetProperty("text").GetString()!,
+                Explanation = root.GetProperty("explanation").GetString()!,
+                DifficultyLevel = root.GetProperty("difficultyLevel").GetString()!,
+                Choices = new List<GeneratedChoice>()
+            };
+
+            foreach (var choice in root.GetProperty("choices").EnumerateArray())
+            {
+                question.Choices.Add(new GeneratedChoice
+                {
+                    Text = choice.GetProperty("text").GetString()!,
+                    IsCorrect = choice.GetProperty("isCorrect").GetBoolean()
+                });
+            }
+
+            // Validate exactly 4 choices and exactly 1 correct answer
+            if (question.Choices.Count != 4)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"\n    ⚠ Invalid question: Expected 4 choices, got {question.Choices.Count}");
+                Console.ResetColor();
+                return null;
+            }
+
+            var correctCount = question.Choices.Count(c => c.IsCorrect);
+            if (correctCount != 1)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"\n    ⚠ Invalid question: Expected 1 correct answer, got {correctCount}");
+                Console.ResetColor();
+                return null;
+            }
+
+            return question;
+        }
+        catch (ClientResultException ex) when (ex.Status == 429 && attempt < maxRetries)
         {
+            // Rate limit hit - retry with exponential backoff
+            var delayMs = baseDelayMs * (int)Math.Pow(2, attempt);
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"\n    ⚠ Invalid question: Expected 4 choices, got {question.Choices.Count}");
+            Console.WriteLine($"\n    ⚠ Rate limit hit. Retrying in {delayMs}ms... (Attempt {attempt + 1}/{maxRetries})");
+            Console.ResetColor();
+            await Task.Delay(delayMs);
+            continue;
+        }
+        catch (Exception ex) when (attempt < maxRetries)
+        {
+            // Generic error - retry with shorter delay
+            var delayMs = baseDelayMs;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"\n    ⚠ Error: {ex.Message}. Retrying in {delayMs}ms... (Attempt {attempt + 1}/{maxRetries})");
+            Console.ResetColor();
+            await Task.Delay(delayMs);
+            continue;
+        }
+        catch (Exception ex)
+        {
+            // Final attempt failed
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"\n    ✗ Failed after {maxRetries} attempts: {ex.Message}");
             Console.ResetColor();
             return null;
         }
-
-        var correctCount = question.Choices.Count(c => c.IsCorrect);
-        if (correctCount != 1)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"\n    ⚠ Invalid question: Expected 1 correct answer, got {correctCount}");
-            Console.ResetColor();
-            return null;
-        }
-
-        return question;
     }
-    catch (Exception ex)
-    {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"\n    Error generating question: {ex.Message}");
-        Console.ResetColor();
-        return null;
-    }
+
+    return null;
 }
 
 // ============================================================================

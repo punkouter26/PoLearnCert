@@ -143,17 +143,14 @@ specs/001-cert-quiz-platform/
   STEPS.MD                   # Implementation steps
   README.MD                  # Project overview and setup
 
-/scripts
-  start-azurite.ps1          # Start local Azurite emulator
-  seed-questions.ps1         # Seed initial question data
-
 /.github
   /workflows
     ci.yml                   # CI pipeline (build, test, format check)
 
 /tools
-  /Po.LearnCert.QuestionGenerator  # Separate C# console app
-    Program.cs                      # Azure OpenAI integration for question generation
+  /Po.LearnCert.QuestionGenerator  # C# console app for AI-powered question generation
+    Program.cs                      # Azure OpenAI integration
+    appsettings.json                # Azure OpenAI configuration
 ```
 
 **Structure Decision**: Selected web application structure (Option 2) with Blazor WASM frontend and .NET API backend. Both are organized using vertical slice architecture with features aligned to user stories: Quiz (P1), Statistics (P2), Leaderboards (P3), and Certifications (P4). Authentication is a cross-cutting feature supporting all slices. The separation between Client and Api projects enables independent deployment if needed in the future, while Shared project prevents duplication of DTOs and contracts.

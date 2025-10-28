@@ -16,14 +16,14 @@ public class TableRepository<T> : IRepository<T> where T : TableEntityBase, new(
     public TableRepository(TableServiceClient tableServiceClient, ILogger<TableRepository<T>> logger)
     {
         _logger = logger;
-        
+
         // Table name follows pattern: PoLearnCert[EntityName]
         var tableName = $"PoLearnCert{typeof(T).Name.Replace("Entity", "")}";
         _tableClient = tableServiceClient.GetTableClient(tableName);
-        
+
         // Create table if it doesn't exist
         _tableClient.CreateIfNotExists();
-        
+
         _logger.LogInformation("Initialized TableRepository for {TableName}", tableName);
     }
 
@@ -50,12 +50,12 @@ public class TableRepository<T> : IRepository<T> where T : TableEntityBase, new(
     public async Task<IEnumerable<T>> QueryAsync(string filter, CancellationToken cancellationToken = default)
     {
         var entities = new List<T>();
-        
+
         await foreach (var entity in _tableClient.QueryAsync<T>(filter, cancellationToken: cancellationToken))
         {
             entities.Add(entity);
         }
-        
+
         _logger.LogDebug("Query returned {Count} entities with filter: {Filter}", entities.Count, filter);
         return entities;
     }
@@ -65,13 +65,13 @@ public class TableRepository<T> : IRepository<T> where T : TableEntityBase, new(
         try
         {
             await _tableClient.AddEntityAsync(entity, cancellationToken);
-            _logger.LogInformation("Created entity: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogInformation("Created entity: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 entity.PartitionKey, entity.RowKey);
             return entity;
         }
         catch (RequestFailedException ex) when (ex.Status == 409)
         {
-            _logger.LogError("Entity already exists: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogError("Entity already exists: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 entity.PartitionKey, entity.RowKey);
             throw new InvalidOperationException("Entity already exists", ex);
         }
@@ -82,19 +82,19 @@ public class TableRepository<T> : IRepository<T> where T : TableEntityBase, new(
         try
         {
             await _tableClient.UpdateEntityAsync(entity, entity.ETag, TableUpdateMode.Replace, cancellationToken);
-            _logger.LogInformation("Updated entity: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogInformation("Updated entity: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 entity.PartitionKey, entity.RowKey);
             return entity;
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
-            _logger.LogError("Entity not found for update: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogError("Entity not found for update: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 entity.PartitionKey, entity.RowKey);
             throw new InvalidOperationException("Entity not found", ex);
         }
         catch (RequestFailedException ex) when (ex.Status == 412)
         {
-            _logger.LogError("Concurrency conflict: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogError("Concurrency conflict: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 entity.PartitionKey, entity.RowKey);
             throw new InvalidOperationException("Concurrency conflict - entity was modified", ex);
         }
@@ -105,12 +105,12 @@ public class TableRepository<T> : IRepository<T> where T : TableEntityBase, new(
         try
         {
             await _tableClient.DeleteEntityAsync(partitionKey, rowKey, cancellationToken: cancellationToken);
-            _logger.LogInformation("Deleted entity: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogInformation("Deleted entity: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 partitionKey, rowKey);
         }
         catch (RequestFailedException ex) when (ex.Status == 404)
         {
-            _logger.LogWarning("Attempted to delete non-existent entity: PartitionKey={PartitionKey}, RowKey={RowKey}", 
+            _logger.LogWarning("Attempted to delete non-existent entity: PartitionKey={PartitionKey}, RowKey={RowKey}",
                 partitionKey, rowKey);
         }
     }

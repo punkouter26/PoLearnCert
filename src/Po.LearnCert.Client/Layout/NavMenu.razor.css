@@ -1,17 +1,14 @@
-/* Professional Navigation Menu Styles */
+/* Clean Professional Navigation */
 
 .navbar-toggler {
-    appearance: none;
-    cursor: pointer;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: none;
-    padding: 0.75rem;
-    border-radius: var(--radius-md);
-    transition: all var(--transition-fast);
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.5rem;
+    border-radius: 4px;
 }
 
 .navbar-toggler:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .navbar-toggler-icon {
@@ -21,79 +18,55 @@
 }
 
 .top-row {
-    height: 4rem;
+    height: 3.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
 }
 
 .nav-scrollable {
     overflow-y: auto;
-    height: calc(100vh - 4rem);
-    padding: 1.5rem 0;
+    height: calc(100vh - 3.5rem);
+    padding: 1rem 0;
 }
 
 .nav-brand {
-    padding: 1rem 1.5rem;
-    font-size: 1.25rem;
-    font-weight: 700;
+    padding: 0.5rem 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
     color: white;
     text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: opacity var(--transition-fast);
 }
 
 .nav-brand:hover {
     opacity: 0.9;
 }
 
-.nav-brand-icon {
-    width: 32px;
-    height: 32px;
-    background-color: rgba(255, 255, 255, 0.2);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-}
-
 .nav-item {
-    padding: 0.5rem 1.5rem;
+    padding: 0.25rem 1rem;
 }
 
 .nav-item a {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    color: rgba(255, 255, 255, 0.85);
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    transition: all var(--transition-base);
+    border-radius: 4px;
+    font-size: 0.9375rem;
+    transition: background-color 0.15s ease;
 }
 
 .nav-item a:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: white;
-    transform: translateX(4px);
 }
 
 .nav-item a.active {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.15);
     color: white;
-    font-weight: 600;
-}
-
-.nav-item-icon {
-    width: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 @media (min-width: 641px) {

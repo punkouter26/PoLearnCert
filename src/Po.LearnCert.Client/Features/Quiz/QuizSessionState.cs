@@ -46,8 +46,8 @@ public class QuizSessionState
     /// <summary>
     /// Gets the progress percentage.
     /// </summary>
-    public int ProgressPercentage => TotalQuestions > 0 
-        ? (int)Math.Round((double)_session!.CurrentQuestionIndex / TotalQuestions * 100) 
+    public int ProgressPercentage => TotalQuestions > 0
+        ? (int)Math.Round((double)_session!.CurrentQuestionIndex / TotalQuestions * 100)
         : 0;
 
     /// <summary>

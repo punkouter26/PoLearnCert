@@ -36,9 +36,14 @@
                     <div class="progress-fill" style="width: @QuizState.ProgressPercentage%"></div>
                 </div>
             </div>
-            <div class="score-info">
-                <span class="correct">✓ @QuizState.Session!.CorrectAnswers</span>
-                <span class="incorrect">✗ @QuizState.Session!.IncorrectAnswers</span>
+            <div class="header-actions">
+                <div class="score-info">
+                    <span class="correct">✓ @QuizState.Session!.CorrectAnswers</span>
+                    <span class="incorrect">✗ @QuizState.Session!.IncorrectAnswers</span>
+                </div>
+                <button class="btn-quit" @onclick="QuitTest" title="Quit test and return to main menu">
+                    Quit Test
+                </button>
             </div>
         </div>
 
@@ -177,6 +182,14 @@
     private void GoToSetup()
     {
         Navigation.NavigateTo("/quiz/setup");
+    }
+
+    private void QuitTest()
+    {
+        // Clear the current session state
+        QuizState.ClearSession();
+        // Navigate back to home page
+        Navigation.NavigateTo("/");
     }
 
     public void Dispose()

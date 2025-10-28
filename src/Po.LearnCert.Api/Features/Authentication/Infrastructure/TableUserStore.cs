@@ -7,7 +7,7 @@ namespace Po.LearnCert.Api.Features.Authentication.Infrastructure;
 /// <summary>
 /// Custom UserStore implementation for ASP.NET Core Identity using Azure Table Storage.
 /// </summary>
-public class TableUserStore : IUserStore<UserEntity>, IUserPasswordStore<UserEntity>, 
+public class TableUserStore : IUserStore<UserEntity>, IUserPasswordStore<UserEntity>,
     IUserEmailStore<UserEntity>, IUserLockoutStore<UserEntity>, IUserSecurityStampStore<UserEntity>
 {
     private readonly TableClient _tableClient;

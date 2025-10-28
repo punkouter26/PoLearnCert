@@ -1,0 +1,39 @@
+@using Po.LearnCert.Shared.Models
+
+<div class="leaderboard-filters">
+    <div class="filter-group">
+        <label for="cert-select">Certification:</label>
+        <select id="cert-select" @bind="selectedCertId" @bind:after="OnFilterChange" disabled="@IsLoading">
+            <option value="AZ-900">Microsoft Azure Fundamentals (AZ-900)</option>
+            <option value="SecurityPlus">CompTIA Security+ (SY0-701)</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label for="period-select">Time Period:</label>
+        <select id="period-select" @bind="selectedTimePeriod" @bind:after="OnFilterChange" disabled="@IsLoading">
+            <option value="AllTime">All Time</option>
+            <option value="Monthly">This Month</option>
+            <option value="Weekly">This Week</option>
+        </select>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<(string certId, string timePeriod)> OnFilterChanged { get; set; }
+
+    [Parameter]
+    public bool IsLoading { get; set; }
+
+    private string selectedCertId = "AZ-900";
+    private string selectedTimePeriod = "AllTime";
+
+    private async Task OnFilterChange()
+    {
+        if (OnFilterChanged.HasDelegate)
+        {
+            await OnFilterChanged.InvokeAsync((selectedCertId, selectedTimePeriod));
+        }
+    }
+}

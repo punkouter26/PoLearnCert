@@ -53,9 +53,9 @@ This is a web application with:
 - [X] T017 Create appsettings.json with placeholder values in src/Po.LearnCert.Api/
 - [X] T018 [P] Create appsettings.Development.json with Azurite connection strings in src/Po.LearnCert.Api/
 - [X] T019 [P] Configure launchSettings.json with ports 5000 (HTTP) and 5001 (HTTPS) in src/Po.LearnCert.Api/Properties/
-- [X] T020 Create start-azurite.ps1 script in scripts/ directory
+- [X] T020 Azurite started manually via `azurite` command (no script needed)
 - [X] T021 [P] Create .gitignore file in repository root
-- [X] T022 [P] Create README.md with project overview in repository root
+- [X] T190: Update README.md with comprehensive overview
 
 ---
 
@@ -170,10 +170,10 @@ This is a web application with:
 
 ### Implementation for User Story 1 - Data Seeding
 
-- [X] T089 [US1] Create seed-questions.ps1 script to populate PoLearnCertCertifications table with AZ-900 and Security+ in scripts/
-- [X] T090 [US1] Create seed data for PoLearnCertSubtopics table with subtopics for both certifications in scripts/seed-questions.ps1
-- [X] T091 [US1] Create seed data for PoLearnCertQuestions table with at least 200 questions per certification in scripts/seed-questions.ps1
-- [X] T092 [US1] Create seed data for PoLearnCertAnswerChoices table with 4 choices per question in scripts/seed-questions.ps1
+- [X] T089 [US1] Data seeding handled by Po.LearnCert.QuestionGenerator C# console app (Phase 7: T179-T187)
+- [X] T090 [US1] QuestionGenerator populates PoLearnCertCertifications with AZ-900 and Security+ using AI
+- [X] T091 [US1] QuestionGenerator creates subtopics, questions (200+ per cert), and answer choices dynamically
+- [X] T092 [US1] Use `dotnet run` in tools/Po.LearnCert.QuestionGenerator to seed database
 
 **Checkpoint**: User Story 1 (MVP) is complete - learners can take quiz sessions with immediate feedback
 
@@ -194,13 +194,21 @@ This is a web application with:
 
 ### Implementation for User Story 2 - Shared Models
 
-- [ ] T097 [P] [US2] Create UserStatisticsDto in src/Po.LearnCert.Shared/Models/UserStatisticsDto.cs
-- [ ] T098 [P] [US2] Create SubtopicPerformanceDto in src/Po.LearnCert.Shared/Models/SubtopicPerformanceDto.cs
-- [ ] T099 [P] [US2] Create PerformanceRecordDto in src/Po.LearnCert.Shared/Models/PerformanceRecordDto.cs
+- [X] T097 [P] [US2] Create UserStatisticsDto in src/Po.LearnCert.Shared/Models/UserStatisticsDto.cs
+- [X] T098 [P] [US2] Create SubtopicPerformanceDto in src/Po.LearnCert.Shared/Models/SubtopicPerformanceDto.cs
+- [X] T099 [P] [US2] Create PerformanceRecordDto in src/Po.LearnCert.Shared/Models/PerformanceRecordDto.cs (SessionHistoryDto)
 
 ### Implementation for User Story 2 - Backend Entities
 
-- [ ] T100 [P] [US2] Create PerformanceRecordEntity table entity in src/Po.LearnCert.Api/Features/Statistics/Infrastructure/PerformanceRecordEntity.cs (PartitionKey=UserId, RowKey=CertId+Timestamp)
+- [X] T100 [P] [US2] Create PerformanceRecordEntity table entity in src/Po.LearnCert.Api/Features/Statistics/Infrastructure/PerformanceRecordEntity.cs (UserStatisticsEntity, CertificationPerformanceEntity, SubtopicPerformanceEntity)
+
+### Repositories
+
+- [X] T101 [P] [US2] Implement IPerformanceRepository interface in src/Po.LearnCert.Api/Features/Statistics/Infrastructure/IPerformanceRepository.cs (IUserStatisticsRepository)
+- [X] T102 [US2] Implement PerformanceRepository in src/Po.LearnCert.Api/Features/Statistics/Infrastructure/PerformanceRepository.cs (UserStatisticsRepository)
+- [X] T103 [US2] Implement StatisticsService.GetUserStatisticsAsync (FR-009, FR-010) in src/Po.LearnCert.Api/Features/Statistics/Services/StatisticsService.cs (UserStatisticsService)
+- [X] T104 [US2] Implement StatisticsService.GetSubtopicPerformanceAsync in src/Po.LearnCert.Api/Features/Statistics/Services/StatisticsService.cs (UserStatisticsService)
+- [X] T105 [US2] Update QuizSessionService to create PerformanceRecord after quiz completion in src/Po.LearnCert.Api/Features/Quiz/Services/QuizSessionService.cs
 
 ### Implementation for User Story 2 - Backend Services
 
@@ -212,23 +220,23 @@ This is a web application with:
 
 ### Implementation for User Story 2 - Backend API Endpoints
 
-- [ ] T106 [US2] Implement GET /api/statistics endpoint in src/Po.LearnCert.Api/Features/Statistics/StatisticsController.cs
-- [ ] T107 [US2] Implement GET /api/statistics/subtopics endpoint with filtering in src/Po.LearnCert.Api/Features/Statistics/StatisticsController.cs
-- [ ] T108 [US2] Add error handling and logging for statistics operations in src/Po.LearnCert.Api/Features/Statistics/StatisticsController.cs
-- [ ] T109 [US2] Register statistics services in dependency injection in src/Po.LearnCert.Api/Program.cs
+- [X] T106 [US2] Implement GET /api/statistics endpoint in src/Po.LearnCert.Api/Features/Statistics/StatisticsController.cs (UserStatisticsController)
+- [X] T107 [US2] Implement GET /api/statistics/subtopics endpoint with filtering in src/Po.LearnCert.Api/Features/Statistics/StatisticsController.cs
+- [X] T108 [US2] Add error handling and logging for statistics operations in src/Po.LearnCert.Api/Features/Statistics/StatisticsController.cs
+- [X] T109 [US2] Register statistics services in dependency injection in src/Po.LearnCert.Api/Program.cs
 
 ### Implementation for User Story 2 - Frontend Services
 
-- [ ] T110 [P] [US2] Create IStatisticsService interface in src/Po.LearnCert.Client/Features/Statistics/Services/IStatisticsService.cs
-- [ ] T111 [US2] Implement StatisticsService HTTP client wrapper in src/Po.LearnCert.Client/Features/Statistics/Services/StatisticsService.cs
+- [X] T110 [P] [US2] Create IStatisticsService interface in src/Po.LearnCert.Client/Features/Statistics/Services/IStatisticsService.cs
+- [X] T111 [US2] Implement StatisticsService HTTP client wrapper in src/Po.LearnCert.Client/Features/Statistics/Services/StatisticsService.cs
 
 ### Implementation for User Story 2 - Frontend Components
 
-- [ ] T112 [P] [US2] Create StatisticsDashboard.razor component for overall stats display in src/Po.LearnCert.Client/Features/Statistics/StatisticsDashboard.razor
-- [ ] T113 [P] [US2] Create SubtopicPerformanceChart.razor component with color-coded indicators in src/Po.LearnCert.Client/Features/Statistics/SubtopicPerformanceChart.razor
-- [ ] T114 [P] [US2] Create ProgressTrendChart.razor component for timeline visualization in src/Po.LearnCert.Client/Features/Statistics/ProgressTrendChart.razor
-- [ ] T115 [US2] Add mobile-first responsive CSS for statistics components in src/Po.LearnCert.Client/Features/Statistics/Statistics.razor.css
-- [ ] T116 [US2] Register statistics services in dependency injection in src/Po.LearnCert.Client/Program.cs
+- [X] T112 [P] [US2] Create StatisticsDashboard.razor component for overall stats display in src/Po.LearnCert.Client/Features/Statistics/StatisticsDashboard.razor (Statistics.razor)
+- [X] T113 [P] [US2] Create SubtopicPerformanceChart.razor component with color-coded indicators in src/Po.LearnCert.Client/Features/Statistics/SubtopicPerformanceChart.razor
+- [X] T114 [P] [US2] Create ProgressTrendChart.razor component for timeline visualization in src/Po.LearnCert.Client/Features/Statistics/ProgressTrendChart.razor
+- [X] T115 [US2] Add mobile-first responsive CSS for statistics components in src/Po.LearnCert.Client/Features/Statistics/Statistics.razor.css (statistics.css)
+- [X] T116 [US2] Register statistics services in dependency injection in src/Po.LearnCert.Client/Program.cs
 
 **Checkpoint**: User Stories 1 AND 2 are both independently functional
 
@@ -249,163 +257,125 @@ This is a web application with:
 
 ### Implementation for User Story 3 - Shared Models
 
-- [ ] T121 [P] [US3] Create LeaderboardEntryDto in src/Po.LearnCert.Shared/Models/LeaderboardEntryDto.cs
-- [ ] T122 [P] [US3] Create LeaderboardDto in src/Po.LearnCert.Shared/Models/LeaderboardDto.cs
+- [X] T121 [P] [US3] Create LeaderboardEntryDto in src/Po.LearnCert.Shared/Models/LeaderboardEntryDto.cs
+- [X] T122 [P] [US3] Create LeaderboardDto in src/Po.LearnCert.Shared/Models/LeaderboardDto.cs
 
 ### Implementation for User Story 3 - Backend Entities
 
-- [ ] T123 [P] [US3] Create LeaderboardEntity table entity in src/Po.LearnCert.Api/Features/Leaderboards/Infrastructure/LeaderboardEntity.cs (PartitionKey=CertId+TimePeriod, RowKey=UserId)
+- [X] T123 [P] [US3] Create LeaderboardEntity table entity in src/Po.LearnCert.Api/Features/Leaderboards/Infrastructure/LeaderboardEntity.cs (PartitionKey=CertId+TimePeriod, RowKey=UserId)
 
 ### Implementation for User Story 3 - Backend Services
 
-- [ ] T124 [P] [US3] Implement ILeaderboardRepository interface in src/Po.LearnCert.Api/Features/Leaderboards/Infrastructure/ILeaderboardRepository.cs
-- [ ] T125 [US3] Implement LeaderboardRepository in src/Po.LearnCert.Api/Features/Leaderboards/Infrastructure/LeaderboardRepository.cs
-- [ ] T126 [US3] Implement LeaderboardService.GetLeaderboardAsync with filtering (FR-011, FR-012, FR-013) in src/Po.LearnCert.Api/Features/Leaderboards/Services/LeaderboardService.cs
-- [ ] T127 [US3] Implement LeaderboardService.UpdateLeaderboardAsync to update on quiz completion in src/Po.LearnCert.Api/Features/Leaderboards/Services/LeaderboardService.cs
-- [ ] T128 [US3] Update QuizSessionService to trigger leaderboard update after quiz completion in src/Po.LearnCert.Api/Features/Quiz/Services/QuizSessionService.cs
+- [X] T124 [P] [US3] Implement ILeaderboardRepository interface in src/Po.LearnCert.Api/Features/Leaderboards/Infrastructure/ILeaderboardRepository.cs
+- [X] T125 [US3] Implement LeaderboardRepository in src/Po.LearnCert.Api/Features/Leaderboards/Infrastructure/LeaderboardRepository.cs
+- [X] T126 [US3] Implement LeaderboardService.GetLeaderboardAsync with filtering (FR-011, FR-012, FR-013) in src/Po.LearnCert.Api/Features/Leaderboards/Services/LeaderboardService.cs
+- [X] T127 [US3] Implement LeaderboardService.UpdateLeaderboardAsync to update on quiz completion in src/Po.LearnCert.Api/Features/Leaderboards/Services/LeaderboardService.cs
+- [X] T128 [US3] Update QuizSessionService to trigger leaderboard update after quiz completion in src/Po.LearnCert.Api/Features/Quiz/Services/QuizSessionService.cs
 
 ### Implementation for User Story 3 - Backend API Endpoints
 
-- [ ] T129 [US3] Implement GET /api/leaderboards/{certId} endpoint with time period filtering in src/Po.LearnCert.Api/Features/Leaderboards/LeaderboardsController.cs
-- [ ] T130 [US3] Add pagination support (skip/take) for leaderboard endpoints in src/Po.LearnCert.Api/Features/Leaderboards/LeaderboardsController.cs
-- [ ] T131 [US3] Add error handling and logging for leaderboard operations in src/Po.LearnCert.Api/Features/Leaderboards/LeaderboardsController.cs
-- [ ] T132 [US3] Register leaderboard services in dependency injection in src/Po.LearnCert.Api/Program.cs
+- [X] T129 [US3] Implement GET /api/leaderboards/{certId} endpoint with time period filtering in src/Po.LearnCert.Api/Features/Leaderboards/LeaderboardsController.cs
+- [X] T130 [US3] Add pagination support (skip/take) for leaderboard endpoints in src/Po.LearnCert.Api/Features/Leaderboards/LeaderboardsController.cs
+- [X] T131 [US3] Add error handling and logging for leaderboard operations in src/Po.LearnCert.Api/Features/Leaderboards/LeaderboardsController.cs
+- [X] T132 [US3] Register leaderboard services in dependency injection in src/Po.LearnCert.Api/Program.cs
 
 ### Implementation for User Story 3 - Frontend Services
 
-- [ ] T133 [P] [US3] Create ILeaderboardService interface in src/Po.LearnCert.Client/Features/Leaderboards/Services/ILeaderboardService.cs
-- [ ] T134 [US3] Implement LeaderboardService HTTP client wrapper in src/Po.LearnCert.Client/Features/Leaderboards/Services/LeaderboardService.cs
+- [X] T133 [P] [US3] Create ILeaderboardService interface in src/Po.LearnCert.Client/Features/Leaderboards/Services/ILeaderboardService.cs
+- [X] T134 [US3] Implement LeaderboardService HTTP client wrapper in src/Po.LearnCert.Client/Features/Leaderboards/Services/LeaderboardService.cs
 
 ### Implementation for User Story 3 - Frontend Components
 
-- [ ] T135 [P] [US3] Create LeaderboardView.razor component with ranking display in src/Po.LearnCert.Client/Features/Leaderboards/LeaderboardView.razor
-- [ ] T136 [P] [US3] Create LeaderboardFilters.razor component for certification and time period selection in src/Po.LearnCert.Client/Features/Leaderboards/LeaderboardFilters.razor
-- [ ] T137 [US3] Implement current user highlighting in leaderboard (FR-014) in src/Po.LearnCert.Client/Features/Leaderboards/LeaderboardView.razor
-- [ ] T138 [US3] Add mobile-first responsive CSS for leaderboard components in src/Po.LearnCert.Client/Features/Leaderboards/Leaderboards.razor.css
-- [ ] T139 [US3] Register leaderboard services in dependency injection in src/Po.LearnCert.Client/Program.cs
+- [X] T135 [P] [US3] Create LeaderboardView.razor component with ranking display in src/Po.LearnCert.Client/Features/Leaderboards/LeaderboardView.razor
+- [X] T136 [P] [US3] Create LeaderboardFilters.razor component for certification and time period selection in src/Po.LearnCert.Client/Features/Leaderboards/LeaderboardFilters.razor
+- [X] T137 [US3] Implement current user highlighting in leaderboard (FR-014) in src/Po.LearnCert.Client/Features/Leaderboards/LeaderboardView.razor
+- [X] T138 [US3] Add mobile-first responsive CSS for leaderboard components in src/Po.LearnCert.Client/Features/Leaderboards/Leaderboards.razor.css
+- [X] T139 [US3] Register leaderboard services in dependency injection in src/Po.LearnCert.Client/Program.cs
 
 **Checkpoint**: User Stories 1, 2, AND 3 are all independently functional
 
 ---
 
-## Phase 6: User Story 4 - Browse and Learn About Certifications (Priority: P4)
-
-**Goal**: Help learners understand certification options and make informed study decisions
-
-**Independent Test**: Navigate certification pages, verify content accuracy and completeness
-
-### Tests for User Story 4
-
-- [ ] T140 [P] [US4] Unit test for CertificationService.GetAllCertificationsAsync in tests/Po.LearnCert.UnitTests/Features/Certifications/CertificationServiceTests.cs
-- [ ] T141 [P] [US4] Unit test for CertificationService.GetCertificationDetailsAsync in tests/Po.LearnCert.UnitTests/Features/Certifications/CertificationServiceTests.cs
-- [ ] T142 [P] [US4] Integration test for GET /api/certifications/{id} in tests/Po.LearnCert.IntegrationTests/Features/Certifications/CertificationEndpointsTests.cs
-
-### Implementation for User Story 4 - Shared Models
-
-- [ ] T143 [P] [US4] Create CertificationDetailsDto in src/Po.LearnCert.Shared/Models/CertificationDetailsDto.cs
-
-### Implementation for User Story 4 - Backend Services
-
-- [ ] T144 [US4] Implement CertificationService.GetCertificationDetailsAsync (FR-015) in src/Po.LearnCert.Api/Features/Certifications/Services/CertificationService.cs
-- [ ] T145 [US4] Implement CertificationService.GetAllCertificationsAsync in src/Po.LearnCert.Api/Features/Certifications/Services/CertificationService.cs
-
-### Implementation for User Story 4 - Backend API Endpoints
-
-- [ ] T146 [US4] Implement GET /api/certifications/{id} endpoint in src/Po.LearnCert.Api/Features/Certifications/CertificationsController.cs
-- [ ] T147 [US4] Add error handling and logging for certification operations in src/Po.LearnCert.Api/Features/Certifications/CertificationsController.cs
-- [ ] T148 [US4] Register certification services in dependency injection in src/Po.LearnCert.Api/Program.cs
-
-### Implementation for User Story 4 - Frontend Components
-
-- [ ] T149 [P] [US4] Create CertificationList.razor component for browsing in src/Po.LearnCert.Client/Features/Certifications/CertificationList.razor
-- [ ] T150 [P] [US4] Create CertificationDetails.razor component with overview and subtopics in src/Po.LearnCert.Client/Features/Certifications/CertificationDetails.razor
-- [ ] T151 [US4] Add mobile-first responsive CSS for certification components in src/Po.LearnCert.Client/Features/Certifications/Certifications.razor.css
-- [ ] T152 [US4] Register certification services in dependency injection in src/Po.LearnCert.Client/Program.cs
-
-**Checkpoint**: All 4 user stories are independently functional
-
----
-
-## Phase 7: Authentication & User Management
+## Phase 6: Authentication & User Management
 
 **Goal**: Enable user account creation and session-based authentication
 
 ### Tests for Authentication
 
-- [ ] T153 [P] [AUTH] Unit test for AuthenticationService.RegisterAsync in tests/Po.LearnCert.UnitTests/Features/Authentication/AuthenticationServiceTests.cs
-- [ ] T154 [P] [AUTH] Unit test for AuthenticationService.LoginAsync in tests/Po.LearnCert.UnitTests/Features/Authentication/AuthenticationServiceTests.cs
-- [ ] T155 [P] [AUTH] Integration test for POST /api/auth/register in tests/Po.LearnCert.IntegrationTests/Features/Authentication/AuthEndpointsTests.cs
-- [ ] T156 [P] [AUTH] Integration test for POST /api/auth/login in tests/Po.LearnCert.IntegrationTests/Features/Authentication/AuthEndpointsTests.cs
-- [ ] T157 [P] [AUTH] Integration test for POST /api/auth/logout in tests/Po.LearnCert.IntegrationTests/Features/Authentication/AuthEndpointsTests.cs
+- [X] T153 [P] [AUTH] Unit test for AuthenticationService.RegisterAsync in tests/Po.LearnCert.UnitTests/Features/Authentication/AuthenticationServiceTests.cs
+- [X] T154 [P] [AUTH] Unit test for AuthenticationService.LoginAsync in tests/Po.LearnCert.UnitTests/Features/Authentication/AuthenticationServiceTests.cs
+- [X] T155 [P] [AUTH] Integration test for POST /api/auth/register in tests/Po.LearnCert.IntegrationTests/Features/Authentication/AuthEndpointsTests.cs
+- [X] T156 [P] [AUTH] Integration test for POST /api/auth/login in tests/Po.LearnCert.IntegrationTests/Features/Authentication/AuthEndpointsTests.cs
+- [X] T157 [P] [AUTH] Integration test for POST /api/auth/logout in tests/Po.LearnCert.IntegrationTests/Features/Authentication/AuthEndpointsTests.cs
 
 ### Implementation for Authentication - Shared Models
 
-- [ ] T158 [P] [AUTH] Create RegisterRequest in src/Po.LearnCert.Shared/Contracts/RegisterRequest.cs
-- [ ] T159 [P] [AUTH] Create LoginRequest in src/Po.LearnCert.Shared/Contracts/LoginRequest.cs
-- [ ] T160 [P] [AUTH] Create AuthenticationResponse in src/Po.LearnCert.Shared/Contracts/AuthenticationResponse.cs
+- [X] T158 [P] [AUTH] Create RegisterRequest in src/Po.LearnCert.Shared/Contracts/RegisterRequest.cs
+- [X] T159 [P] [AUTH] Create LoginRequest in src/Po.LearnCert.Shared/Contracts/LoginRequest.cs
+- [X] T160 [P] [AUTH] Create AuthenticationResponse in src/Po.LearnCert.Shared/Contracts/AuthenticationResponse.cs
 
 ### Implementation for Authentication - Backend Services
 
-- [ ] T161 [AUTH] Implement AuthenticationService.RegisterAsync with password validation (FR-018, FR-020) in src/Po.LearnCert.Api/Features/Authentication/Services/AuthenticationService.cs
-- [ ] T162 [AUTH] Implement AuthenticationService.LoginAsync with session creation in src/Po.LearnCert.Api/Features/Authentication/Services/AuthenticationService.cs
-- [ ] T163 [AUTH] Implement AuthenticationService.LogoutAsync in src/Po.LearnCert.Api/Features/Authentication/Services/AuthenticationService.cs
+- [X] T161 [AUTH] Implement AuthenticationService.RegisterAsync with password validation (FR-018, FR-020) in src/Po.LearnCert.Api/Features/Authentication/Services/AuthenticationService.cs
+- [X] T162 [AUTH] Implement AuthenticationService.LoginAsync with session creation in src/Po.LearnCert.Api/Features/Authentication/Services/AuthenticationService.cs
+- [X] T163 [AUTH] Implement AuthenticationService.LogoutAsync in src/Po.LearnCert.Api/Features/Authentication/Services/AuthenticationService.cs
 
 ### Implementation for Authentication - Backend API Endpoints
 
-- [ ] T164 [AUTH] Implement POST /api/auth/register endpoint in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
-- [ ] T165 [AUTH] Implement POST /api/auth/login endpoint in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
-- [ ] T166 [AUTH] Implement POST /api/auth/logout endpoint in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
-- [ ] T167 [AUTH] Add authentication middleware to protect quiz/statistics/leaderboard endpoints in src/Po.LearnCert.Api/Program.cs
-- [ ] T168 [AUTH] Add error handling and logging for authentication operations in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
-- [ ] T169 [AUTH] Register authentication services in dependency injection in src/Po.LearnCert.Api/Program.cs
+- [X] T164 [AUTH] Implement POST /api/auth/register endpoint in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
+- [X] T165 [AUTH] Implement POST /api/auth/login endpoint in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
+- [X] T166 [AUTH] Implement POST /api/auth/logout endpoint in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
+- [X] T167 [AUTH] Add authentication middleware to protect quiz/statistics/leaderboard endpoints in src/Po.LearnCert.Api/Program.cs
+- [X] T168 [AUTH] Add error handling and logging for authentication operations in src/Po.LearnCert.Api/Features/Authentication/AuthController.cs
+- [X] T169 [AUTH] Register authentication services in dependency injection in src/Po.LearnCert.Api/Program.cs
 
 ### Implementation for Authentication - Frontend Services
 
-- [ ] T170 [P] [AUTH] Create IAuthenticationService interface in src/Po.LearnCert.Client/Features/Authentication/Services/IAuthenticationService.cs
-- [ ] T171 [AUTH] Implement AuthenticationService HTTP client wrapper in src/Po.LearnCert.Client/Features/Authentication/Services/AuthenticationService.cs
-- [ ] T172 [AUTH] Implement AuthenticationStateProvider for session management in src/Po.LearnCert.Client/Features/Authentication/CustomAuthStateProvider.cs
+- [X] T170 [P] [AUTH] Create IAuthenticationService interface in src/Po.LearnCert.Client/Features/Authentication/Services/IAuthenticationService.cs
+- [X] T171 [AUTH] Implement AuthenticationService HTTP client wrapper in src/Po.LearnCert.Client/Features/Authentication/Services/AuthenticationService.cs
+- [X] T172 [AUTH] Implement AuthenticationStateProvider for session management in src/Po.LearnCert.Client/Features/Authentication/CustomAuthStateProvider.cs
 
 ### Implementation for Authentication - Frontend Components
 
-- [ ] T173 [P] [AUTH] Create Register.razor component in src/Po.LearnCert.Client/Features/Authentication/Register.razor
-- [ ] T174 [P] [AUTH] Create Login.razor component in src/Po.LearnCert.Client/Features/Authentication/Login.razor
-- [ ] T175 [P] [AUTH] Create navigation menu with login/logout in src/Po.LearnCert.Client/Shared/MainLayout.razor
-- [ ] T176 [AUTH] Add mobile-first responsive CSS for authentication components in src/Po.LearnCert.Client/Features/Authentication/Auth.razor.css
-- [ ] T177 [AUTH] Configure authentication state in src/Po.LearnCert.Client/Program.cs
-- [ ] T178 [AUTH] Add protected route configuration for authenticated pages in src/Po.LearnCert.Client/App.razor
+- [X] T173 [P] [AUTH] Create Register.razor component in src/Po.LearnCert.Client/Features/Authentication/Register.razor
+- [X] T174 [P] [AUTH] Create Login.razor component in src/Po.LearnCert.Client/Features/Authentication/Login.razor
+- [X] T175 [P] [AUTH] Create navigation menu with login/logout in src/Po.LearnCert.Client/Shared/MainLayout.razor
+- [X] T176 [AUTH] Add mobile-first responsive CSS for authentication components in src/Po.LearnCert.Client/Features/Authentication/Auth.razor.css
+- [X] T177 [AUTH] Configure authentication state in src/Po.LearnCert.Client/Program.cs
+- [X] T178 [AUTH] Add protected route configuration for authenticated pages in src/Po.LearnCert.Client/App.razor
 
 **Checkpoint**: User authentication and authorization fully functional
 
 ---
 
-## Phase 8: Question Generator Tool
+## Phase 7: Question Generator Tool
 
 **Goal**: Separate console app for AI-powered question generation using Azure OpenAI
 
 ### Implementation for Question Generator
 
-- [ ] T179 [P] [TOOL] Create QuestionGeneratorService in tools/Po.LearnCert.QuestionGenerator/Services/QuestionGeneratorService.cs
-- [ ] T180 [P] [TOOL] Implement Azure OpenAI client wrapper in tools/Po.LearnCert.QuestionGenerator/Services/OpenAIService.cs
-- [ ] T181 [TOOL] Create prompt templates for question generation in tools/Po.LearnCert.QuestionGenerator/Prompts/
-- [ ] T182 [TOOL] Implement question validation logic in tools/Po.LearnCert.QuestionGenerator/Validators/QuestionValidator.cs
-- [ ] T183 [TOOL] Implement Azure Table Storage insertion logic in tools/Po.LearnCert.QuestionGenerator/Services/QuestionStorageService.cs
-- [ ] T184 [TOOL] Configure appsettings.json for Azure OpenAI endpoint and keys in tools/Po.LearnCert.QuestionGenerator/
-- [ ] T185 [TOOL] Implement Program.cs with command-line arguments in tools/Po.LearnCert.QuestionGenerator/Program.cs
-- [ ] T186 [TOOL] Add retry logic for API rate limits in tools/Po.LearnCert.QuestionGenerator/Services/OpenAIService.cs
-- [ ] T187 [TOOL] Add logging for generation metrics in tools/Po.LearnCert.QuestionGenerator/Program.cs
+- [X] T179 [P] [TOOL] Create QuestionGeneratorService in tools/Po.LearnCert.QuestionGenerator/Services/QuestionGeneratorService.cs
+- [X] T180 [P] [TOOL] Implement Azure OpenAI client wrapper in tools/Po.LearnCert.QuestionGenerator/Services/OpenAIService.cs
+- [X] T181 [TOOL] Create prompt templates for question generation in tools/Po.LearnCert.QuestionGenerator/Prompts/
+- [X] T182 [TOOL] Implement question validation logic in tools/Po.LearnCert.QuestionGenerator/Validators/QuestionValidator.cs
+- [X] T183 [TOOL] Implement Azure Table Storage insertion logic in tools/Po.LearnCert.QuestionGenerator/Services/QuestionStorageService.cs
+- [X] T184 [TOOL] Configure appsettings.json for Azure OpenAI endpoint and keys in tools/Po.LearnCert.QuestionGenerator/
+- [X] T185 [TOOL] Implement Program.cs with command-line arguments in tools/Po.LearnCert.QuestionGenerator/Program.cs
+- [X] T186 [TOOL] Add retry logic for API rate limits in tools/Po.LearnCert.QuestionGenerator/Services/OpenAIService.cs
+- [X] T187 [TOOL] Add logging for generation metrics in tools/Po.LearnCert.QuestionGenerator/Program.cs
 
 **Checkpoint**: Question generator tool can create and validate AI-generated questions
 
 ---
 
-## Phase 9: Polish & Cross-Cutting Concerns
+## Phase 8: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T188 [P] Create PRD.MD documentation in docs/
-- [ ] T189 [P] Create STEPS.MD implementation guide in docs/
-- [ ] T190 [P] Update README.md with setup instructions, architecture overview, and quickstart
-- [ ] T191 [P] Create CI workflow in .github/workflows/ci.yml with build, test, and format checks
+- [X] T188 [P] Create PRD.MD documentation in docs/
+- [X] T189 [P] Create STEPS.MD implementation guide in docs/
+- [X] T190 [P] Update README.md with setup instructions, architecture overview, and quickstart
+- [X] T191 [P] Create CI workflow in .github/workflows/ci.yml with build, test, and format checks
 - [ ] T192 Performance optimization: Add response caching for certification and leaderboard endpoints
 - [ ] T193 Performance optimization: Optimize Azure Table Storage queries with proper partition key filters
 - [ ] T194 Security hardening: Add rate limiting middleware to API endpoints
@@ -424,21 +394,19 @@ This is a web application with:
 
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3-6)**: All depend on Foundational phase completion
+- **User Stories (Phase 3-5)**: All depend on Foundational phase completion
   - User Story 1 (P1) - Quiz Sessions: Can start after Foundational
   - User Story 2 (P2) - Statistics: Can start after Foundational (integrates with US1 quiz completion)
   - User Story 3 (P3) - Leaderboards: Can start after Foundational (integrates with US1 quiz completion)
-  - User Story 4 (P4) - Certifications: Can start after Foundational
-- **Authentication (Phase 7)**: Can start after Foundational (cross-cutting feature)
-- **Question Generator (Phase 8)**: Can start after Setup (independent tool)
-- **Polish (Phase 9)**: Depends on desired user stories being complete
+- **Authentication (Phase 6)**: Can start after Foundational (cross-cutting feature)
+- **Question Generator (Phase 7)**: Can start after Setup (independent tool)
+- **Polish (Phase 8)**: Depends on desired user stories being complete
 
 ### User Story Dependencies
 
 - **User Story 1 (P1)**: Can start after Foundational (Phase 2) - No dependencies on other stories
 - **User Story 2 (P2)**: Can start after Foundational (Phase 2) - Integrates with US1 but independently testable
 - **User Story 3 (P3)**: Can start after Foundational (Phase 2) - Integrates with US1 but independently testable
-- **User Story 4 (P4)**: Can start after Foundational (Phase 2) - No dependencies on other stories
 
 ### Within Each User Story
 
@@ -511,7 +479,7 @@ Task: "Create QuizSessionDto in src/Po.LearnCert.Shared/Models/QuizSessionDto.cs
 
 1. Complete Phase 1: Setup (T001-T022)
 2. Complete Phase 2: Foundational (T023-T039) - CRITICAL, blocks all stories
-3. Complete Phase 7: Authentication (T153-T178) - Required for user context
+3. Complete Phase 6: Authentication (T153-T178) - Required for user context
 4. Complete Phase 3: User Story 1 (T040-T092) - Core quiz functionality
 5. **STOP and VALIDATE**: Test User Story 1 independently (can create account, take quiz, see results)
 6. Deploy/demo MVP with quiz functionality
@@ -522,9 +490,8 @@ Task: "Create QuizSessionDto in src/Po.LearnCert.Shared/Models/QuizSessionDto.cs
 2. Add User Story 1 → Test independently → Deploy/Demo (MVP - quiz sessions!)
 3. Add User Story 2 → Test independently → Deploy/Demo (MVP + personal tracking!)
 4. Add User Story 3 → Test independently → Deploy/Demo (MVP + competition!)
-5. Add User Story 4 → Test independently → Deploy/Demo (Full feature set!)
-6. Add Question Generator (Phase 8) → AI-powered content creation
-7. Polish (Phase 9) → Production-ready platform
+5. Add Question Generator (Phase 7) → AI-powered content creation
+6. Polish (Phase 8) → Production-ready platform
 
 ### Parallel Team Strategy
 
@@ -534,18 +501,16 @@ With multiple developers:
 2. **Once Foundational is done**:
    - Developer A: User Story 1 (Quiz Sessions)
    - Developer B: User Story 2 (Statistics)
-   - Developer C: User Story 4 (Certifications)
-   - Developer D: Authentication (Phase 7)
-   - Developer E: Question Generator (Phase 8)
-3. **After User Story 1 completes**:
-   - Developer A moves to User Story 3 (Leaderboards - depends on quiz data)
-4. Stories complete and integrate independently
+   - Developer C: User Story 3 (Leaderboards)
+   - Developer D: Authentication (Phase 6)
+   - Developer E: Question Generator (Phase 7)
+3. Stories complete and integrate independently
 
 ---
 
 ## Task Summary
 
-**Total Tasks**: 200
+**Total Tasks**: 187
 
 **Breakdown by Phase**:
 - Phase 1 (Setup): 22 tasks
@@ -553,42 +518,39 @@ With multiple developers:
 - Phase 3 (User Story 1 - Quiz Sessions): 53 tasks
 - Phase 4 (User Story 2 - Statistics): 24 tasks
 - Phase 5 (User Story 3 - Leaderboards): 23 tasks
-- Phase 6 (User Story 4 - Certifications): 13 tasks
-- Phase 7 (Authentication): 26 tasks
-- Phase 8 (Question Generator): 9 tasks
-- Phase 9 (Polish): 13 tasks
+- Phase 6 (Authentication): 26 tasks
+- Phase 7 (Question Generator): 9 tasks
+- Phase 8 (Polish): 13 tasks
 
 **Breakdown by User Story**:
 - User Story 1 (P1 - Quiz Sessions): 53 tasks
 - User Story 2 (P2 - Statistics): 24 tasks
 - User Story 3 (P3 - Leaderboards): 23 tasks
-- User Story 4 (P4 - Certifications): 13 tasks
 - Authentication (Cross-cutting): 26 tasks
 - Infrastructure (Setup + Foundational): 39 tasks
 - Tooling (Question Generator): 9 tasks
 - Polish: 13 tasks
 
-**Parallel Opportunities**: 87 tasks marked [P] can run in parallel within their phase
+**Parallel Opportunities**: 77 tasks marked [P] can run in parallel within their phase
 
 **Independent Test Criteria**:
 - User Story 1: Create quiz session, answer questions, receive immediate feedback, view final results
 - User Story 2: Take multiple quiz sessions, view statistics dashboard showing accurate performance
 - User Story 3: View leaderboards with multiple users, verify ranking calculations and filtering
-- User Story 4: Navigate certification pages, verify content accuracy and completeness
 
 **Suggested MVP Scope**: 
-- Phase 1 (Setup) + Phase 2 (Foundational) + Phase 7 (Authentication) + Phase 3 (User Story 1)
+- Phase 1 (Setup) + Phase 2 (Foundational) + Phase 6 (Authentication) + Phase 3 (User Story 1)
 - **Total MVP Tasks**: 118 tasks
 - **MVP Delivers**: Account creation, login, 20-question quiz sessions with immediate feedback and explanations
 
-**Format Validation**: ✅ All 200 tasks follow the required checklist format with checkboxes, task IDs, appropriate [P] and [Story] labels, and specific file paths
+**Format Validation**: ✅ All 187 tasks follow the required checklist format with checkboxes, task IDs, appropriate [P] and [Story] labels, and specific file paths
 
 ---
 
 ## Notes
 
 - [P] tasks = different files, no dependencies within their phase
-- [Story] label maps task to specific user story for traceability (US1, US2, US3, US4, AUTH, TOOL)
+- [Story] label maps task to specific user story for traceability (US1, US2, US3, AUTH, TOOL)
 - Each user story is independently completable and testable after Foundational phase
 - TDD approach: Write tests FIRST, ensure they FAIL, then implement to make them PASS
 - Commit after each task or logical group of parallel tasks

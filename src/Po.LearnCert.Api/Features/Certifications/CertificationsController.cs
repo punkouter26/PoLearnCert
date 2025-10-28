@@ -50,7 +50,7 @@ public class CertificationsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var certification = await _certificationService.GetCertificationByIdAsync(id, cancellationToken);
-        
+
         if (certification == null)
         {
             return NotFound(new { message = $"Certification {id} not found." });
