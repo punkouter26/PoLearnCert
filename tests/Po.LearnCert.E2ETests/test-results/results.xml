@@ -1,54 +1,51 @@
-<testsuites id="" name="" tests="22" failures="0" skipped="0" errors="0" time="13.100574">
-<testsuite name="quiz.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="chromium" tests="6" failures="0" skipped="0" time="15.562" errors="0">
-<testcase name="Quiz Functionality › should display quiz setup page" classname="quiz.spec.ts" time="2.756">
+<testsuites id="" name="" tests="2" failures="1" skipped="1" errors="0" time="35.848811000000005">
+<testsuite name="complete-user-journey.spec.ts" timestamp="2025-11-03T23:50:49.038Z" hostname="chromium" tests="2" failures="1" skipped="1" time="31.967" errors="0">
+<testcase name="Complete User Journey - Register, Quiz, and Statistics › should complete full user journey: register → login → quiz → statistics" classname="complete-user-journey.spec.ts" time="31.967">
+<failure message="complete-user-journey.spec.ts:39:7 should complete full user journey: register → login → quiz → statistics" type="FAILURE">
+<![CDATA[  [chromium] › complete-user-journey.spec.ts:39:7 › Complete User Journey - Register, Quiz, and Statistics › should complete full user journey: register → login → quiz → statistics 
+
+    TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.
+    Call log:
+      - waiting for locator('.quiz-question-container, .question-content') to be visible
+
+
+      161 |       // Wait for question to load
+      162 |       try {
+    > 163 |         await page.waitForSelector('.quiz-question-container, .question-content', { timeout: 15000 });
+          |                    ^
+      164 |       } catch (e) {
+      165 |         // Might have navigated to results or somewhere else
+      166 |         const currentUrl = page.url();
+        at C:\Users\punko\Downloads\PoLearnCert\PoLearnCert\tests\Po.LearnCert.E2ETests\tests\complete-user-journey.spec.ts:163:20
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ..\test-results\complete-user-journey-Comp-e7e00-→-login-→-quiz-→-statistics-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\test-results\complete-user-journey-Comp-e7e00-→-login-→-quiz-→-statistics-chromium\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[Step 1: Registering new account...
+Registration completed
+Step 2: Logging in...
+Login completed
+Step 3: Starting quiz...
+Quiz started, answering questions...
+Answering question 1...
+Answering question 2...
+Current URL after timeout: http://localhost:5000/quiz/feedback?isCorrect=False&explanation=Azure%20App%20Service%20is%20the%20correct%20choice%20because%20it%20provides%20built-in%20autoscaling%20capabilities%2C%20allowing%20web%20applications%20to%20automatically%20scale%20up%20or%20down%20based%20on%20traffic.%20Azure%20Virtual%20Machines%20require%20manual%20configuration%20for%20scaling%2C%20Azure%20Functions%20are%20suitable%20for%20event-driven%20scenarios%2C%20and%20Azure%20Blob%20Storage%20is%20used%20for%20storing%20large%20amounts%20of%20unstructured%20data%20and%20does%20not%20provide%20web%20hosting%20capabilities.&correctChoiceId=CQCORE_SERVICES-009-2
+Still on quiz page but selector not found
+
+[[ATTACHMENT|complete-user-journey-Comp-e7e00-→-login-→-quiz-→-statistics-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|complete-user-journey-Comp-e7e00-→-login-→-quiz-→-statistics-chromium\error-context.md]]
+]]>
+</system-out>
 </testcase>
-<testcase name="Quiz Functionality › should navigate to quiz setup via navigation" classname="quiz.spec.ts" time="2.485">
-</testcase>
-<testcase name="Quiz Functionality › should display certification selection dropdown" classname="quiz.spec.ts" time="2.913">
-</testcase>
-<testcase name="Quiz Functionality › should show question count input" classname="quiz.spec.ts" time="2.673">
-</testcase>
-<testcase name="Quiz Functionality › should show start quiz button" classname="quiz.spec.ts" time="2.418">
-</testcase>
-<testcase name="Quiz Functionality › should be responsive on mobile" classname="quiz.spec.ts" time="2.317">
-</testcase>
-</testsuite>
-<testsuite name="statistics.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="chromium" tests="5" failures="0" skipped="0" time="12.623" errors="0">
-<testcase name="Statistics Dashboard › should navigate to statistics page" classname="statistics.spec.ts" time="2.616">
-</testcase>
-<testcase name="Statistics Dashboard › should display statistics container" classname="statistics.spec.ts" time="2.403">
-</testcase>
-<testcase name="Statistics Dashboard › should show loading or content" classname="statistics.spec.ts" time="2.88">
-</testcase>
-<testcase name="Statistics Dashboard › should display stat cards when data loads" classname="statistics.spec.ts" time="2.38">
-</testcase>
-<testcase name="Statistics Dashboard › should be responsive on mobile" classname="statistics.spec.ts" time="2.344">
-</testcase>
-</testsuite>
-<testsuite name="quiz.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="Mobile Chrome" tests="6" failures="0" skipped="0" time="12.916" errors="0">
-<testcase name="Quiz Functionality › should display quiz setup page" classname="quiz.spec.ts" time="2.505">
-</testcase>
-<testcase name="Quiz Functionality › should navigate to quiz setup via navigation" classname="quiz.spec.ts" time="2.38">
-</testcase>
-<testcase name="Quiz Functionality › should display certification selection dropdown" classname="quiz.spec.ts" time="2.111">
-</testcase>
-<testcase name="Quiz Functionality › should show question count input" classname="quiz.spec.ts" time="1.815">
-</testcase>
-<testcase name="Quiz Functionality › should show start quiz button" classname="quiz.spec.ts" time="2.213">
-</testcase>
-<testcase name="Quiz Functionality › should be responsive on mobile" classname="quiz.spec.ts" time="1.892">
-</testcase>
-</testsuite>
-<testsuite name="statistics.spec.ts" timestamp="2025-10-27T23:49:38.899Z" hostname="Mobile Chrome" tests="5" failures="0" skipped="0" time="8.736" errors="0">
-<testcase name="Statistics Dashboard › should navigate to statistics page" classname="statistics.spec.ts" time="2.309">
-</testcase>
-<testcase name="Statistics Dashboard › should display statistics container" classname="statistics.spec.ts" time="1.499">
-</testcase>
-<testcase name="Statistics Dashboard › should show loading or content" classname="statistics.spec.ts" time="1.671">
-</testcase>
-<testcase name="Statistics Dashboard › should display stat cards when data loads" classname="statistics.spec.ts" time="1.67">
-</testcase>
-<testcase name="Statistics Dashboard › should be responsive on mobile" classname="statistics.spec.ts" time="1.587">
+<testcase name="Complete User Journey - Register, Quiz, and Statistics › should show statistics increase after second quiz" classname="complete-user-journey.spec.ts" time="0">
+<skipped>
+</skipped>
 </testcase>
 </testsuite>
 </testsuites>

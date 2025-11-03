@@ -372,6 +372,7 @@
 .btn-secondary {
     flex: 1;
     padding: 0.75rem 1.5rem;
+    min-height: 44px; /* Mobile-first: ensure minimum touch target size */
     border: none;
     border-radius: 4px;
     font-size: 1rem;
@@ -424,6 +425,7 @@
 .no-session button {
     margin-top: 1rem;
     padding: 0.75rem 1.5rem;
+    min-height: 44px; /* Mobile-first: ensure minimum touch target size */
     background: #2196f3;
     color: white;
     border: none;

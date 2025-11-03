@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 12
+      "actualWorkers": 1
     },
     "preserveOutput": "always",
     "reporter": [
@@ -43,7 +43,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 12
+          "actualWorkers": 1
         },
         "id": "chromium",
         "name": "chromium",
@@ -59,7 +59,7 @@
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
-          "actualWorkers": 12
+          "actualWorkers": 1
         },
         "id": "Mobile Chrome",
         "name": "Mobile Chrome",
@@ -75,7 +75,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.56.1",
-    "workers": 12,
+    "workers": 1,
     "webServer": {
       "command": "dotnet run --project ../../src/Po.LearnCert.Api",
       "port": 5000,
@@ -85,25 +85,25 @@
   },
   "suites": [
     {
-      "title": "quiz.spec.ts",
-      "file": "quiz.spec.ts",
+      "title": "complete-user-journey.spec.ts",
+      "file": "complete-user-journey.spec.ts",
       "column": 0,
       "line": 0,
       "specs": [],
       "suites": [
         {
-          "title": "Quiz Functionality",
-          "file": "quiz.spec.ts",
-          "line": 3,
+          "title": "Complete User Journey - Register, Quiz, and Statistics",
+          "file": "complete-user-journey.spec.ts",
+          "line": 15,
           "column": 6,
           "specs": [
             {
-              "title": "should display quiz setup page",
-              "ok": true,
+              "title": "should complete full user journey: register → login → quiz → statistics",
+              "ok": false,
               "tags": [],
               "tests": [
                 {
-                  "timeout": 30000,
+                  "timeout": 90000,
                   "annotations": [],
                   "expectedStatus": "passed",
                   "projectId": "chromium",
@@ -112,27 +112,93 @@
                     {
                       "workerIndex": 0,
                       "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 2756,
-                      "errors": [],
-                      "stdout": [],
+                      "status": "failed",
+                      "duration": 31967,
+                      "error": {
+                        "message": "TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.quiz-question-container, .question-content') to be visible\u001b[22m\n",
+                        "stack": "TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.quiz-question-container, .question-content') to be visible\u001b[22m\n\n    at C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\tests\\complete-user-journey.spec.ts:163:20",
+                        "location": {
+                          "file": "C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\tests\\complete-user-journey.spec.ts",
+                          "column": 20,
+                          "line": 163
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 161 |\u001b[39m       \u001b[90m// Wait for question to load\u001b[39m\n \u001b[90m 162 |\u001b[39m       \u001b[36mtry\u001b[39m {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 163 |\u001b[39m         \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForSelector(\u001b[32m'.quiz-question-container, .question-content'\u001b[39m\u001b[33m,\u001b[39m { timeout\u001b[33m:\u001b[39m \u001b[35m15000\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 164 |\u001b[39m       } \u001b[36mcatch\u001b[39m (e) {\n \u001b[90m 165 |\u001b[39m         \u001b[90m// Might have navigated to results or somewhere else\u001b[39m\n \u001b[90m 166 |\u001b[39m         \u001b[36mconst\u001b[39m currentUrl \u001b[33m=\u001b[39m page\u001b[33m.\u001b[39murl()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\tests\\complete-user-journey.spec.ts",
+                            "column": 20,
+                            "line": 163
+                          },
+                          "message": "TimeoutError: page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.quiz-question-container, .question-content') to be visible\u001b[22m\n\n\n  161 |       // Wait for question to load\n  162 |       try {\n> 163 |         await page.waitForSelector('.quiz-question-container, .question-content', { timeout: 15000 });\n      |                    ^\n  164 |       } catch (e) {\n  165 |         // Might have navigated to results or somewhere else\n  166 |         const currentUrl = page.url();\n    at C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\tests\\complete-user-journey.spec.ts:163:20"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "Step 1: Registering new account...\n"
+                        },
+                        {
+                          "text": "Registration completed\n"
+                        },
+                        {
+                          "text": "Step 2: Logging in...\n"
+                        },
+                        {
+                          "text": "Login completed\n"
+                        },
+                        {
+                          "text": "Step 3: Starting quiz...\n"
+                        },
+                        {
+                          "text": "Quiz started, answering questions...\n"
+                        },
+                        {
+                          "text": "Answering question 1...\n"
+                        },
+                        {
+                          "text": "Answering question 2...\n"
+                        },
+                        {
+                          "text": "Current URL after timeout: http://localhost:5000/quiz/feedback?isCorrect=False&explanation=Azure%20App%20Service%20is%20the%20correct%20choice%20because%20it%20provides%20built-in%20autoscaling%20capabilities%2C%20allowing%20web%20applications%20to%20automatically%20scale%20up%20or%20down%20based%20on%20traffic.%20Azure%20Virtual%20Machines%20require%20manual%20configuration%20for%20scaling%2C%20Azure%20Functions%20are%20suitable%20for%20event-driven%20scenarios%2C%20and%20Azure%20Blob%20Storage%20is%20used%20for%20storing%20large%20amounts%20of%20unstructured%20data%20and%20does%20not%20provide%20web%20hosting%20capabilities.&correctChoiceId=CQCORE_SERVICES-009-2\n"
+                        },
+                        {
+                          "text": "Still on quiz page but selector not found\n"
+                        }
+                      ],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.030Z",
+                      "startTime": "2025-11-03T23:50:49.501Z",
                       "annotations": [],
-                      "attachments": []
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\test-results\\complete-user-journey-Comp-e7e00-→-login-→-quiz-→-statistics-chromium\\test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\test-results\\complete-user-journey-Comp-e7e00-→-login-→-quiz-→-statistics-chromium\\error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "C:\\Users\\punko\\Downloads\\PoLearnCert\\PoLearnCert\\tests\\Po.LearnCert.E2ETests\\tests\\complete-user-journey.spec.ts",
+                        "column": 20,
+                        "line": 163
+                      }
                     }
                   ],
-                  "status": "expected"
+                  "status": "unexpected"
                 }
               ],
-              "id": "b28a81d7079595d0160f-b9e976d22cf788f3d88e",
-              "file": "quiz.spec.ts",
-              "line": 15,
+              "id": "766c4be6139e2506a720-35ff75a66fce5ee5053b",
+              "file": "complete-user-journey.spec.ts",
+              "line": 39,
               "column": 7
             },
             {
-              "title": "should navigate to quiz setup via navigation",
+              "title": "should show statistics increase after second quiz",
               "ok": true,
               "tags": [],
               "tests": [
@@ -144,722 +210,25 @@
                   "projectName": "chromium",
                   "results": [
                     {
-                      "workerIndex": 1,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 2485,
+                      "workerIndex": -1,
+                      "parallelIndex": -1,
+                      "status": "skipped",
+                      "duration": 0,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-10-27T23:49:39.971Z",
+                      "startTime": "2025-11-03T23:51:21.761Z",
                       "annotations": [],
                       "attachments": []
                     }
                   ],
-                  "status": "expected"
+                  "status": "skipped"
                 }
               ],
-              "id": "b28a81d7079595d0160f-0991ac6c35d3551bfbc9",
-              "file": "quiz.spec.ts",
-              "line": 22,
-              "column": 7
-            },
-            {
-              "title": "should display certification selection dropdown",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 2,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 2913,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:39.964Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-50937b4ac08284b7ce2d",
-              "file": "quiz.spec.ts",
-              "line": 31,
-              "column": 7
-            },
-            {
-              "title": "should show question count input",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 3,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 2673,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:39.950Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-0b9e17988680ea8f25ba",
-              "file": "quiz.spec.ts",
-              "line": 47,
-              "column": 7
-            },
-            {
-              "title": "should show start quiz button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 4,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 2418,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.047Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-c430eb98dda410516c47",
-              "file": "quiz.spec.ts",
-              "line": 62,
-              "column": 7
-            },
-            {
-              "title": "should be responsive on mobile",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 5,
-                      "parallelIndex": 5,
-                      "status": "passed",
-                      "duration": 2317,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.039Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-8011e5d2d3f9f88d6d30",
-              "file": "quiz.spec.ts",
-              "line": 73,
-              "column": 7
-            },
-            {
-              "title": "should display quiz setup page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 11,
-                      "status": "passed",
-                      "duration": 2505,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.030Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-8d1f8e7d7c80b6f0996d",
-              "file": "quiz.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "should navigate to quiz setup via navigation",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 12,
-                      "parallelIndex": 5,
-                      "status": "passed",
-                      "duration": 2380,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.188Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-76ea0496c1bfd0238a47",
-              "file": "quiz.spec.ts",
-              "line": 22,
-              "column": 7
-            },
-            {
-              "title": "should display certification selection dropdown",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 13,
-                      "parallelIndex": 1,
-                      "status": "passed",
-                      "duration": 2111,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.209Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-355bf7f7e93b1db35a3b",
-              "file": "quiz.spec.ts",
-              "line": 31,
-              "column": 7
-            },
-            {
-              "title": "should show question count input",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 15,
-                      "parallelIndex": 9,
-                      "status": "passed",
-                      "duration": 1815,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.270Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-be3f7efb94f0928af402",
-              "file": "quiz.spec.ts",
-              "line": 47,
-              "column": 7
-            },
-            {
-              "title": "should show start quiz button",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 14,
-                      "parallelIndex": 4,
-                      "status": "passed",
-                      "duration": 2213,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.244Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-10eb906ed990821ec33a",
-              "file": "quiz.spec.ts",
-              "line": 62,
-              "column": 7
-            },
-            {
-              "title": "should be responsive on mobile",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 17,
-                      "parallelIndex": 7,
-                      "status": "passed",
-                      "duration": 1892,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.312Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "b28a81d7079595d0160f-cbfde2e61dae722bcf17",
-              "file": "quiz.spec.ts",
-              "line": 73,
-              "column": 7
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "title": "statistics.spec.ts",
-      "file": "statistics.spec.ts",
-      "column": 0,
-      "line": 0,
-      "specs": [],
-      "suites": [
-        {
-          "title": "Statistics Dashboard",
-          "file": "statistics.spec.ts",
-          "line": 3,
-          "column": 6,
-          "specs": [
-            {
-              "title": "should navigate to statistics page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 6,
-                      "parallelIndex": 6,
-                      "status": "passed",
-                      "duration": 2616,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.013Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-52fe0449138a0a474bb0",
-              "file": "statistics.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "should display statistics container",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 7,
-                      "parallelIndex": 7,
-                      "status": "passed",
-                      "duration": 2403,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.038Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-b1d49c57115bfaa2df56",
-              "file": "statistics.spec.ts",
-              "line": 26,
-              "column": 7
-            },
-            {
-              "title": "should show loading or content",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 8,
-                      "parallelIndex": 8,
-                      "status": "passed",
-                      "duration": 2880,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.047Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-f01edb1c6be3ec8a81c1",
-              "file": "statistics.spec.ts",
-              "line": 38,
-              "column": 7
-            },
-            {
-              "title": "should display stat cards when data loads",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 9,
-                      "parallelIndex": 9,
-                      "status": "passed",
-                      "duration": 2380,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.030Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-92add41ea9e76c484e13",
-              "file": "statistics.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "should be responsive on mobile",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "chromium",
-                  "projectName": "chromium",
-                  "results": [
-                    {
-                      "workerIndex": 10,
-                      "parallelIndex": 10,
-                      "status": "passed",
-                      "duration": 2344,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:40.055Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-52d5f9a7bbdd97951b62",
-              "file": "statistics.spec.ts",
-              "line": 66,
-              "column": 7
-            },
-            {
-              "title": "should navigate to statistics page",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 16,
-                      "parallelIndex": 3,
-                      "status": "passed",
-                      "duration": 2309,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.294Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-349d50192bf07f248470",
-              "file": "statistics.spec.ts",
-              "line": 15,
-              "column": 7
-            },
-            {
-              "title": "should display statistics container",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 11,
-                      "parallelIndex": 11,
-                      "status": "passed",
-                      "duration": 1499,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:43.026Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-3002447f7f5cc0224ad0",
-              "file": "statistics.spec.ts",
-              "line": 26,
-              "column": 7
-            },
-            {
-              "title": "should show loading or content",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 18,
-                      "parallelIndex": 2,
-                      "status": "passed",
-                      "duration": 1671,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.442Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-8e121b0c733a5456ce36",
-              "file": "statistics.spec.ts",
-              "line": 38,
-              "column": 7
-            },
-            {
-              "title": "should display stat cards when data loads",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 19,
-                      "parallelIndex": 0,
-                      "status": "passed",
-                      "duration": 1670,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:44.469Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-904b929f63462b370539",
-              "file": "statistics.spec.ts",
-              "line": 51,
-              "column": 7
-            },
-            {
-              "title": "should be responsive on mobile",
-              "ok": true,
-              "tags": [],
-              "tests": [
-                {
-                  "timeout": 30000,
-                  "annotations": [],
-                  "expectedStatus": "passed",
-                  "projectId": "Mobile Chrome",
-                  "projectName": "Mobile Chrome",
-                  "results": [
-                    {
-                      "workerIndex": 20,
-                      "parallelIndex": 10,
-                      "status": "passed",
-                      "duration": 1587,
-                      "errors": [],
-                      "stdout": [],
-                      "stderr": [],
-                      "retry": 0,
-                      "startTime": "2025-10-27T23:49:45.268Z",
-                      "annotations": [],
-                      "attachments": []
-                    }
-                  ],
-                  "status": "expected"
-                }
-              ],
-              "id": "ce6a6ad83d45104d2631-f54a5ffacfd94cffc904",
-              "file": "statistics.spec.ts",
-              "line": 66,
+              "id": "766c4be6139e2506a720-838a27c36f1f244af8f1",
+              "file": "complete-user-journey.spec.ts",
+              "line": 293,
               "column": 7
             }
           ]
@@ -869,11 +238,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-10-27T23:49:34.947Z",
-    "duration": 13100.574,
-    "expected": 22,
-    "skipped": 0,
-    "unexpected": 0,
+    "startTime": "2025-11-03T23:50:46.063Z",
+    "duration": 35848.811,
+    "expected": 0,
+    "skipped": 1,
+    "unexpected": 1,
     "flaky": 0
   }
 }

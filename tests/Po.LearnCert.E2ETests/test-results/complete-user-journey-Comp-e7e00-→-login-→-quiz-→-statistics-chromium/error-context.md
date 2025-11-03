@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - link "PoLearnCert" [ref=e7] [cursor=pointer]:
+      - /url: ""
+    - navigation [ref=e9]:
+      - link "Home" [ref=e11] [cursor=pointer]:
+        - /url: ""
+      - link "Quiz" [ref=e13] [cursor=pointer]:
+        - /url: quiz
+      - link "Statistics" [ref=e15] [cursor=pointer]:
+        - /url: statistics
+      - link "Leaderboards" [ref=e17] [cursor=pointer]:
+        - /url: leaderboards
+  - main [ref=e18]:
+    - link "About" [ref=e20] [cursor=pointer]:
+      - /url: https://learn.microsoft.com/aspnet/
+    - article [ref=e21]:
+      - generic [ref=e23]:
+        - generic [ref=e25]: ✗
+        - heading "Incorrect" [level=2] [ref=e26]
+        - generic [ref=e27]:
+          - heading "Explanation:" [level=3] [ref=e28]
+          - paragraph [ref=e29]: Azure App Service is the correct choice because it provides built-in autoscaling capabilities, allowing web applications to automatically scale up or down based on traffic. Azure Virtual Machines require manual configuration for scaling, Azure Functions are suitable for event-driven scenarios, and Azure Blob Storage is used for storing large amounts of unstructured data and does not provide web hosting capabilities.
+        - generic [ref=e30]:
+          - heading "Correct Answer:" [level=3] [ref=e31]
+          - paragraph [ref=e32]: Azure App Service
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Correct
+            - generic [ref=e37]: "0"
+          - generic [ref=e38]:
+            - generic [ref=e39]: Incorrect
+            - generic [ref=e40]: "1"
+          - generic [ref=e41]:
+            - generic [ref=e42]: Progress
+            - generic [ref=e43]: 1 / 3
+        - button "Next Question →" [ref=e45] [cursor=pointer]
+```

@@ -10,6 +10,7 @@ using Po.LearnCert.Api.Features.Leaderboards.Services;
 using Po.LearnCert.Api.Repositories;
 using Po.LearnCert.Api.Services;
 using Po.LearnCert.Api.Health;
+using Po.LearnCert.Api.Infrastructure;
 using Azure.Data.Tables;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -110,6 +111,7 @@ try
     builder.Services.AddScoped<IUserStatisticsService, UserStatisticsService>();
     builder.Services.AddScoped<LeaderboardService>();
     builder.Services.AddScoped<Po.LearnCert.Api.Features.Authentication.Services.AuthenticationService>();
+    builder.Services.AddScoped<DataSeeder>();
 
     // Configure Health Checks
     builder.Services.AddHealthChecks()
@@ -119,6 +121,13 @@ try
             tags: new[] { "database", "storage" });
 
     var app = builder.Build();
+
+    // Seed data on startup
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+        await seeder.SeedAsync();
+    }
 
     // Use Problem Details exception handling
     app.UseProblemDetailsExceptionHandler();

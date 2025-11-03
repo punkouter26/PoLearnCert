@@ -130,6 +130,7 @@ a:hover {
     align-items: center;
     justify-content: center;
     padding: 0.75rem 1.5rem;
+    min-height: 44px; /* Mobile-first: ensure minimum touch target size */
     border: none;
     border-radius: var(--radius-md);
     font-size: 1rem;
@@ -191,11 +192,13 @@ a:hover {
 .btn-lg {
     padding: 1rem 2rem;
     font-size: 1.125rem;
+    min-height: 48px;
 }
 
 .btn-sm {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
+    min-height: 36px;
 }
 
 /* Form Controls */
