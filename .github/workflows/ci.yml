@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 001-cert-quiz-platform ]
+    branches: [ master, develop, 001-cert-quiz-platform ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
   workflow_dispatch:
 
 env:
@@ -142,7 +142,7 @@ jobs:
     name: Deploy to Azure App Service
     runs-on: ubuntu-latest
     needs: [build-and-test, code-quality]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     environment:
       name: production
       url: ${{ steps.deploy.outputs.webapp-url }}
