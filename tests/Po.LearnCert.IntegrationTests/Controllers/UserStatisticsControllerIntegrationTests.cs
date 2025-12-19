@@ -197,7 +197,7 @@ public class UserStatisticsControllerIntegrationTests : IDisposable
             $"Expected OK, BadRequest, or NotFound but got {response.StatusCode}");
     }
 
-    
+
 
     [Fact]
     public async Task GetSessionHistory_WithDateRange_ReturnsFilteredSessions()
