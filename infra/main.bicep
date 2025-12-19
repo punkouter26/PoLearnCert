@@ -1,5 +1,5 @@
 // PoLearnCert Infrastructure - Azure Resources
-// Deploys: Storage Account (with Table Storage) + App Service Plan + Web App
+// Deploys: Storage Account (with Table Storage) + Web App (using shared App Service Plan)
 
 targetScope = 'resourceGroup'
 
@@ -12,10 +12,12 @@ param location string = resourceGroup().location
 @description('Base name for resources')
 param baseName string = 'polearncert'
 
+@description('Resource ID of the shared App Service Plan')
+param sharedAppServicePlanId string = '/subscriptions/bbb8dfbe-9169-432f-9b7a-fbf861b51037/resourceGroups/PoShared/providers/Microsoft.Web/serverfarms/PoSharedAppServicePlan1'
+
 // Generate unique suffix for globally unique names
 var resourceToken = toLower(uniqueString(subscription().id, resourceGroup().id, baseName))
 var storageAccountName = toLower('${take(baseName, 10)}${take(resourceToken, 14)}')
-var appServicePlanName = '${baseName}-plan'
 var webAppName = baseName
 
 // ========================================
@@ -79,41 +81,22 @@ resource tableLeaderboards 'Microsoft.Storage/storageAccounts/tableServices/tabl
 }
 
 // ========================================
-// App Service Plan (Linux)
-// ========================================
-resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {
-  name: appServicePlanName
-  location: location
-  kind: 'linux'
-  sku: {
-    name: 'F1'
-    tier: 'Free'
-  }
-  properties: {
-    reserved: true // Required for Linux
-  }
-  tags: {
-    environment: environmentName
-    application: baseName
-  }
-}
-
-// ========================================
-// Web App (App Service)
+// Web App (App Service) - Uses shared plan from PoShared
 // ========================================
 resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   name: webAppName
-  location: location
-  kind: 'app,linux'
+  location: 'centralus' // Must match the shared App Service Plan location
+  kind: 'app'
   properties: {
-    serverFarmId: appServicePlan.id
+    serverFarmId: sharedAppServicePlanId
     httpsOnly: true
     publicNetworkAccess: 'Enabled'
     siteConfig: {
-      linuxFxVersion: 'DOTNETCORE|9.0'
+      netFrameworkVersion: 'v9.0'
       alwaysOn: false // Free tier doesn't support alwaysOn
       minTlsVersion: '1.2'
       ftpsState: 'Disabled'
+      http20Enabled: true
       appSettings: [
         {
           name: 'AzureTableStorage__ConnectionString'
