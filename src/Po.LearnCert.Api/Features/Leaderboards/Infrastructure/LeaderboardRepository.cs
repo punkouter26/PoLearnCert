@@ -26,7 +26,7 @@ public class LeaderboardRepository : ILeaderboardRepository
         int take = 50)
     {
         var partitionKey = LeaderboardEntity.CreatePartitionKey(certificationId, timePeriod);
-        
+
         var query = _tableClient.QueryAsync<LeaderboardEntity>(
             filter: $"PartitionKey eq '{partitionKey}'");
 
@@ -54,7 +54,7 @@ public class LeaderboardRepository : ILeaderboardRepository
     public async Task<int> GetTotalEntriesAsync(string certificationId, string timePeriod)
     {
         var partitionKey = LeaderboardEntity.CreatePartitionKey(certificationId, timePeriod);
-        
+
         var query = _tableClient.QueryAsync<LeaderboardEntity>(
             filter: $"PartitionKey eq '{partitionKey}'",
             select: new[] { "PartitionKey" });
@@ -92,7 +92,7 @@ public class LeaderboardRepository : ILeaderboardRepository
     {
         entity.LastUpdated = DateTime.UtcNow;
         await _tableClient.UpsertEntityAsync(entity);
-        
+
         _logger.LogInformation(
             "Upserted leaderboard entry for user {UserId} in {PartitionKey}",
             entity.UserId, entity.PartitionKey);
@@ -101,7 +101,7 @@ public class LeaderboardRepository : ILeaderboardRepository
     public async Task RecalculateRanksAsync(string certificationId, string timePeriod)
     {
         var partitionKey = LeaderboardEntity.CreatePartitionKey(certificationId, timePeriod);
-        
+
         var query = _tableClient.QueryAsync<LeaderboardEntity>(
             filter: $"PartitionKey eq '{partitionKey}'");
 

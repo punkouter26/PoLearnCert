@@ -1,4 +1,4 @@
-/* Authentication Components Styles */
+/* Shared Authentication Styles */
 
 .login-container,
 .register-container {
@@ -21,18 +21,11 @@
 
 .login-card h2,
 .register-card h2 {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 1rem 0;
     color: #1a202c;
     font-size: 1.75rem;
     font-weight: 600;
     text-align: center;
-}
-
-.subtitle {
-    text-align: center;
-    color: #718096;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
 }
 
 .form-group {
@@ -53,14 +46,12 @@
     border: 1px solid #cbd5e0;
     border-radius: 4px;
     font-size: 1rem;
-    transition: border-color 0.2s;
     box-sizing: border-box;
 }
 
 .form-control:focus {
     outline: none;
     border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
 }
 
 .form-text {
@@ -78,12 +69,10 @@
     display: flex;
     align-items: center;
     cursor: pointer;
-    user-select: none;
 }
 
 .form-group-checkbox input[type="checkbox"] {
     margin-right: 0.5rem;
-    cursor: pointer;
 }
 
 .btn {
@@ -94,7 +83,6 @@
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -125,9 +113,7 @@
 }
 
 @keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+    to { transform: rotate(360deg); }
 }
 
 .alert {
@@ -145,10 +131,6 @@
 .alert ul {
     margin: 0.5rem 0 0 0;
     padding-left: 1.5rem;
-}
-
-.alert li {
-    margin: 0.25rem 0;
 }
 
 .login-link,
@@ -173,28 +155,17 @@
     font-weight: 500;
 }
 
-.login-link a:hover,
-.register-link a:hover {
-    text-decoration: underline;
-}
-
-/* Validation message styles */
 .validation-message {
     color: #e53e3e;
     font-size: 0.85rem;
     margin-top: 0.25rem;
-    display: block;
 }
 
-/* Mobile responsive */
 @media (max-width: 480px) {
-    .login-card,
-    .register-card {
+    .login-card, .register-card {
         padding: 1.5rem;
     }
-
-    .login-card h2,
-    .register-card h2 {
+    .login-card h2, .register-card h2 {
         font-size: 1.5rem;
     }
 }

@@ -1,0 +1,78 @@
+@using Po.LearnCert.Shared.Models
+
+<RadzenCard Variant="Variant.Outlined">
+    <RadzenStack Gap="1rem">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Start">
+            <RadzenText TextStyle="TextStyle.Subtitle1" Text="@Performance.CertificationName" Style="font-weight: 600;" />
+            <RadzenBadge BadgeStyle="@GetScoreBadgeStyle(Performance.BestScore)" 
+                        Text="@($"{Performance.BestScore:F0}%")" 
+                        IsPill="true" />
+        </RadzenStack>
+        
+        <RadzenRow Gap="0.5rem">
+            <RadzenColumn Size="6">
+                <RadzenStack Gap="0.125rem">
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Sessions" />
+                    <RadzenText Text="@Performance.SessionCount.ToString()" Style="font-weight: 500;" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="6">
+                <RadzenStack Gap="0.125rem">
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Average" />
+                    <RadzenText Text="@($"{Performance.AverageScore:F1}%")" Style="font-weight: 500;" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="6">
+                <RadzenStack Gap="0.125rem">
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Accuracy" />
+                    <RadzenText Text="@($"{Performance.Accuracy:F1}%")" Style="font-weight: 500;" />
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="6">
+                <RadzenStack Gap="0.125rem">
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Questions" />
+                    <RadzenText Text="@Performance.QuestionsAnswered.ToString()" Style="font-weight: 500;" />
+                </RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+        
+        <RadzenProgressBar Value="@((double)Performance.Accuracy)" Max="100" ShowValue="false" 
+                          Style="height: 6px;"
+                          ProgressBarStyle="@GetProgressStyle(Performance.Accuracy)" />
+        
+        <RadzenButton Text="View Subtopics" 
+                     Variant="Variant.Outlined" 
+                     Size="ButtonSize.Small"
+                     Icon="chevron_right"
+                     Click="@OnViewSubtopicsClick" />
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public CertificationPerformanceDto Performance { get; set; } = default!;
+
+    [Parameter]
+    public EventCallback<string> OnViewSubtopics { get; set; }
+
+    private async Task OnViewSubtopicsClick()
+    {
+        await OnViewSubtopics.InvokeAsync(Performance.CertificationId);
+    }
+
+    private BadgeStyle GetScoreBadgeStyle(decimal score) => score switch
+    {
+        >= 90m => BadgeStyle.Success,
+        >= 70m => BadgeStyle.Info,
+        >= 50m => BadgeStyle.Warning,
+        _ => BadgeStyle.Danger
+    };
+    
+    private ProgressBarStyle GetProgressStyle(decimal accuracy) => accuracy switch
+    {
+        >= 90m => ProgressBarStyle.Success,
+        >= 70m => ProgressBarStyle.Info,
+        >= 50m => ProgressBarStyle.Warning,
+        _ => ProgressBarStyle.Danger
+    };
+}

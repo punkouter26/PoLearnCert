@@ -9,6 +9,7 @@ using Po.LearnCert.Client.Features.Statistics.Services;
 using Po.LearnCert.Client.Features.Leaderboards.Services;
 using Po.LearnCert.Client.Features.Authentication;
 using Po.LearnCert.Client.Features.Authentication.Services;
+using Radzen;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -20,12 +21,15 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 });
 
+// Add Radzen services
+builder.Services.AddRadzenComponents();
+
 // Add Authorization support
 builder.Services.AddAuthorizationCore();
 
 // Register authentication services
 builder.Services.AddScoped<CustomAuthStateProvider>();
-builder.Services.AddScoped<AuthenticationStateProvider>(provider => 
+builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
     provider.GetRequiredService<CustomAuthStateProvider>());
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 

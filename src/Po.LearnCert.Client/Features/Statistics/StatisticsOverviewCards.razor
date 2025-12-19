@@ -1,0 +1,78 @@
+@using Po.LearnCert.Shared.Models
+
+<RadzenRow Gap="1rem">
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+        <RadzenCard class="rz-text-align-center">
+            <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="assignment_turned_in" Style="font-size: 2rem; color: var(--rz-primary);" />
+                <RadzenText TextStyle="TextStyle.H4" Text="@Stats.TotalSessions.ToString()" Style="margin: 0;" />
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Sessions" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+    
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+        <RadzenCard class="rz-text-align-center">
+            <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="gps_fixed" Style="font-size: 2rem; color: var(--rz-success);" />
+                <RadzenText TextStyle="TextStyle.H4" Text="@($"{Stats.OverallAccuracy:F1}%")" Style="margin: 0;" />
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Accuracy" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+    
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+        <RadzenCard class="rz-text-align-center">
+            <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="trending_up" Style="font-size: 2rem; color: var(--rz-info);" />
+                <RadzenText TextStyle="TextStyle.H4" Text="@($"{Stats.AverageScore:F1}%")" Style="margin: 0;" />
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Avg Score" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+    
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+        <RadzenCard class="rz-text-align-center">
+            <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="emoji_events" Style="font-size: 2rem; color: var(--rz-warning);" />
+                <RadzenText TextStyle="TextStyle.H4" Text="@($"{Stats.BestScore:F1}%")" Style="margin: 0;" />
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Best Score" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+    
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+        <RadzenCard class="rz-text-align-center">
+            <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="schedule" Style="font-size: 2rem; color: var(--rz-secondary);" />
+                <RadzenText TextStyle="TextStyle.H4" Text="@FormatStudyTime(Stats.TotalStudyTime)" Style="margin: 0;" />
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Study Time" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+    
+    <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+        <RadzenCard class="rz-text-align-center">
+            <RadzenStack Gap="0.5rem" AlignItems="AlignItems.Center">
+                <RadzenIcon Icon="help_outline" Style="font-size: 2rem; color: var(--rz-text-color);" />
+                <RadzenText TextStyle="TextStyle.H4" Text="@Stats.TotalQuestionsAnswered.ToString()" Style="margin: 0;" />
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Questions" />
+            </RadzenStack>
+        </RadzenCard>
+    </RadzenColumn>
+</RadzenRow>
+
+@code {
+    [Parameter]
+    public UserStatisticsDto Stats { get; set; } = default!;
+
+    private string FormatStudyTime(TimeSpan timeSpan)
+    {
+        if (timeSpan.TotalHours >= 1)
+            return $"{timeSpan.Hours}h {timeSpan.Minutes}m";
+        else if (timeSpan.TotalMinutes >= 1)
+            return $"{timeSpan.Minutes}m";
+        else
+            return $"{timeSpan.Seconds}s";
+    }
+}

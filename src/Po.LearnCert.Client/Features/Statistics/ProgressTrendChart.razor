@@ -1,132 +1,100 @@
 @using Po.LearnCert.Shared.Models
 @inject ILogger<ProgressTrendChart> Logger
 
-<div class="progress-trend-chart">
-    <h3>Progress Over Time</h3>
+<RadzenCard class="rz-mt-4">
+    <RadzenText TextStyle="TextStyle.H6" class="rz-mb-2">Progress Over Time</RadzenText>
     
     @if (SessionHistory == null || !SessionHistory.Any())
     {
-        <div class="no-data">
-            <p>No session history available yet.</p>
-            <p class="hint">Complete quiz sessions to track your progress over time.</p>
-        </div>
+        <RadzenStack AlignItems="AlignItems.Center" Gap="1rem" class="rz-py-6">
+            <RadzenText Text="📊" Style="font-size: 2.5rem;" />
+            <RadzenText TextStyle="TextStyle.Body1" Text="No session history available yet" />
+            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary" Text="Complete quiz sessions to track your progress over time" />
+        </RadzenStack>
     }
     else
     {
-        <div class="trend-container">
-            <div class="chart-area">
-                @{
-                    var maxScore = (double)SessionHistory.Max(s => s.ScorePercentage);
-                    var minScore = (double)SessionHistory.Min(s => s.ScorePercentage);
-                    var scoreRange = maxScore - minScore;
-                    
-                    // Calculate average
-                    var avgScore = (double)SessionHistory.Average(s => s.ScorePercentage);
-                }
-                
-                <!-- Horizontal grid lines -->
-                <div class="grid-lines">
-                    <div class="grid-line" style="bottom: 100%"><span>100%</span></div>
-                    <div class="grid-line" style="bottom: 75%"><span>75%</span></div>
-                    <div class="grid-line average" style="bottom: @avgScore%">
-                        <span>Avg: @avgScore.ToString("F1")%</span>
+        @* Summary stats at the top *@
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1.5rem" Wrap="FlexWrap.Wrap" class="rz-mb-4">
+            <RadzenStack Gap="0.125rem">
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Sessions" />
+                <RadzenText TextStyle="TextStyle.H5" Text="@SessionHistory.Count.ToString()" Style="margin: 0;" />
+            </RadzenStack>
+            <RadzenStack Gap="0.125rem">
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Average" />
+                <RadzenText TextStyle="TextStyle.H5" Text="@($"{SessionHistory.Average(s => (double)s.ScorePercentage):F1}%")" Style="margin: 0;" />
+            </RadzenStack>
+            <RadzenStack Gap="0.125rem">
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Best" />
+                <RadzenText TextStyle="TextStyle.H5" Text="@($"{SessionHistory.Max(s => (double)s.ScorePercentage):F1}%")" Style="margin: 0; color: var(--rz-success);" />
+            </RadzenStack>
+            <RadzenStack Gap="0.125rem">
+                <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary" Text="Latest" />
+                <RadzenText TextStyle="TextStyle.H5" Text="@($"{(double)SessionHistory.Last().ScorePercentage:F1}%")" Style="margin: 0;" />
+            </RadzenStack>
+        </RadzenStack>
+        
+        @* Chart *@
+        <RadzenChart Style="height: 300px;">
+            <RadzenLineSeries Data="@GetChartData()" 
+                             CategoryProperty="Date" 
+                             ValueProperty="Score"
+                             Title="Score %"
+                             Smooth="true"
+                             Stroke="var(--rz-primary)"
+                             StrokeWidth="3">
+                <TooltipTemplate Context="data">
+                    <div style="padding: 0.5rem;">
+                        <strong>@data.CertificationName</strong><br/>
+                        Score: @data.Score.ToString("F1")%<br/>
+                        @data.DateLabel
                     </div>
-                    <div class="grid-line" style="bottom: 50%"><span>50%</span></div>
-                    <div class="grid-line" style="bottom: 25%"><span>25%</span></div>
-                    <div class="grid-line" style="bottom: 0%"><span>0%</span></div>
-                </div>
-                
-                <!-- Data points and line -->
-                <div class="chart-plot">
-                    @for (int i = 0; i < SessionHistory.Count; i++)
-                    {
-                        var session = SessionHistory[i];
-                        var score = (double)session.ScorePercentage;
-                        var leftPosition = (i * 100.0 / (SessionHistory.Count - 1)).ToString("F1");
-                        var bottomPosition = score.ToString("F1");
-                        var completedAt = session.CompletedAt ?? session.StartedAt;
-                        
-                        <div class="data-point @GetScoreClass(score)" 
-                             style="left: @leftPosition%; bottom: @bottomPosition%"
-                             title="@completedAt.ToString("g"): @score.ToString("F1")%">
-                            <span class="tooltip">
-                                <strong>@session.CertificationName</strong><br/>
-                                Score: @score.ToString("F1")%<br/>
-                                @completedAt.ToString("g")
-                            </span>
-                        </div>
-                        
-                        @if (i < SessionHistory.Count - 1)
-                        {
-                            var nextSession = SessionHistory[i + 1];
-                            var nextScore = (double)nextSession.ScorePercentage;
-                            var nextLeftPosition = ((i + 1) * 100.0 / (SessionHistory.Count - 1)).ToString("F1");
-                            var nextBottomPosition = nextScore.ToString("F1");
-                            
-                            <!-- SVG line connecting points -->
-                            var x1 = leftPosition;
-                            var y1 = (100 - score).ToString("F1");
-                            var x2 = nextLeftPosition;
-                            var y2 = (100 - nextScore).ToString("F1");
-                            
-                            <svg class="trend-line" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-                                <line x1="@x1%" y1="@y1%" x2="@x2%" y2="@y2%" 
-                                      stroke="#4CAF50" stroke-width="2" />
-                            </svg>
-                        }
-                    }
-                </div>
-            </div>
+                </TooltipTemplate>
+            </RadzenLineSeries>
             
-            <!-- Timeline labels -->
-            <div class="timeline">
-                @for (int i = 0; i < SessionHistory.Count; i++)
-                {
-                    var session = SessionHistory[i];
-                    var leftPosition = (i * 100.0 / (SessionHistory.Count - 1)).ToString("F1");
-                    var completedAt = session.CompletedAt ?? session.StartedAt;
-                    
-                    <div class="timeline-label" style="left: @leftPosition%">
-                        @completedAt.ToString("M/d")
-                    </div>
-                }
-            </div>
+            <RadzenAreaSeries Data="@GetChartData()"
+                             CategoryProperty="Date"
+                             ValueProperty="Score"
+                             Stroke="transparent"
+                             Fill="var(--rz-primary-lighter)" />
             
-            <!-- Summary stats -->
-            <div class="trend-summary">
-                <div class="summary-stat">
-                    <span class="label">Sessions:</span>
-                    <span class="value">@SessionHistory.Count</span>
-                </div>
-                <div class="summary-stat">
-                    <span class="label">Average:</span>
-                    <span class="value">@avgScore.ToString("F1")%</span>
-                </div>
-                <div class="summary-stat">
-                    <span class="label">Best:</span>
-                    <span class="value">@maxScore.ToString("F1")%</span>
-                </div>
-                <div class="summary-stat">
-                    <span class="label">Latest:</span>
-                    <span class="value">@((double)SessionHistory.Last().ScorePercentage).ToString("F1")%</span>
-                </div>
-            </div>
-        </div>
+            <RadzenCategoryAxis Padding="20" FormatString="{0:MMM dd}">
+                <RadzenAxisTitle Text="Date" />
+            </RadzenCategoryAxis>
+            
+            <RadzenValueAxis Min="0" Max="100" Step="25">
+                <RadzenGridLines Visible="true" />
+                <RadzenAxisTitle Text="Score %" />
+            </RadzenValueAxis>
+            
+            <RadzenLegend Visible="false" />
+            <RadzenChartTooltipOptions Visible="true" />
+        </RadzenChart>
     }
-</div>
+</RadzenCard>
 
 @code {
     [Parameter]
     public List<SessionSummaryDto>? SessionHistory { get; set; }
-
-    private string GetScoreClass(double score)
+    
+    private List<ChartDataItem> GetChartData()
     {
-        return score switch
+        if (SessionHistory == null) return new();
+        
+        return SessionHistory.Select(s => new ChartDataItem
         {
-            >= 90 => "score-excellent",
-            >= 70 => "score-good",
-            >= 50 => "score-fair",
-            _ => "score-poor"
-        };
+            Date = s.CompletedAt ?? s.StartedAt,
+            DateLabel = (s.CompletedAt ?? s.StartedAt).ToString("MMM dd, yyyy h:mm tt"),
+            Score = (double)s.ScorePercentage,
+            CertificationName = s.CertificationName
+        }).ToList();
+    }
+
+    private class ChartDataItem
+    {
+        public DateTime Date { get; set; }
+        public string DateLabel { get; set; } = "";
+        public double Score { get; set; }
+        public string CertificationName { get; set; } = "";
     }
 }

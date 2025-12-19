@@ -1,7 +1,7 @@
 using Xunit;
 using Moq;
-using Po.LearnCert.Api.Repositories;
-using Po.LearnCert.Api.Entities;
+using Po.LearnCert.Api.Features.Statistics.Repositories;
+using Po.LearnCert.Api.Features.Statistics.Entities;
 using Azure.Data.Tables;
 using Azure;
 

@@ -1,0 +1,31 @@
+<RadzenRow Gap="1rem">
+    @for (int i = 0; i < 6; i++)
+    {
+        <RadzenColumn Size="12" SizeSM="6" SizeMD="4" SizeLG="2">
+            <RadzenCard>
+                <RadzenStack Gap="0.75rem" AlignItems="AlignItems.Center">
+                    <RadzenSkeleton Shape="SkeletonShape.Circle" Width="48px" Height="48px" />
+                    <RadzenSkeleton Width="60px" Height="32px" />
+                    <RadzenSkeleton Width="100px" Height="16px" />
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenColumn>
+    }
+</RadzenRow>
+
+<RadzenCard>
+    <RadzenSkeleton Width="200px" Height="24px" class="rz-mb-4" />
+    <RadzenRow Gap="1rem">
+        @for (int i = 0; i < 2; i++)
+        {
+            <RadzenColumn Size="12" SizeMD="6">
+                <RadzenStack Gap="0.5rem">
+                    <RadzenSkeleton Width="100%" Height="120px" />
+                </RadzenStack>
+            </RadzenColumn>
+        }
+    </RadzenRow>
+</RadzenCard>
+
+@code {
+}

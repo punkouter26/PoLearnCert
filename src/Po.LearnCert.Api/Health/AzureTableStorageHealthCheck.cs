@@ -24,7 +24,7 @@ public class AzureTableStorageHealthCheck : IHealthCheck
         try
         {
             var serviceClient = new TableServiceClient(_connectionString);
-            
+
             // Attempt to get service properties to verify connection
             await serviceClient.GetPropertiesAsync(cancellationToken);
 

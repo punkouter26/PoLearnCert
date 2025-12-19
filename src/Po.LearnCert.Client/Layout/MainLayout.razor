@@ -1,16 +1,59 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@inject NavigationManager Navigation
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+<RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" class="rz-px-4" Style="height: 50px;">
+            <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            <RadzenLink Path="/" Style="text-decoration: none;">
+                <RadzenText Text="PoLearnCert" TextStyle="TextStyle.H6" Style="font-weight: 600; color: var(--rz-text-color);" />
+            </RadzenLink>
+            
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Style="margin-left: auto;">
+                <AuthorizeView>
+                    <Authorized>
+                        <RadzenProfileMenu>
+                            <Template>
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                    <RadzenGravatar Email="@context.User.Identity?.Name" Size="32" />
+                                    <RadzenText Text="@context.User.Identity?.Name" class="rz-display-none rz-display-sm-inline" />
+                                </RadzenStack>
+                            </Template>
+                            <ChildContent>
+                                <RadzenProfileMenuItem Text="My Statistics" Path="/statistics" Icon="bar_chart" />
+                                <RadzenProfileMenuItem Text="Settings" Path="/settings" Icon="settings" />
+                                <RadzenProfileMenuItem Text="Logout" Path="/logout" Icon="logout" />
+                            </ChildContent>
+                        </RadzenProfileMenu>
+                    </Authorized>
+                    <NotAuthorized>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="0.5rem">
+                            <RadzenButton Text="Login" Variant="Variant.Text" Click='@(() => Navigation.NavigateTo("/login"))' />
+                            <RadzenButton Text="Register" Variant="Variant.Outlined" Click='@(() => Navigation.NavigateTo("/register"))' />
+                        </RadzenStack>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenHeader>
+    
+    <RadzenSidebar @bind-Expanded="@sidebarExpanded" Style="width: 250px;">
+        <RadzenPanelMenu>
+            <RadzenPanelMenuItem Text="Home" Icon="home" Path="/" />
+            <RadzenPanelMenuItem Text="Take Quiz" Icon="quiz" Path="/quiz" />
+            <RadzenPanelMenuItem Text="Statistics" Icon="insights" Path="/statistics" />
+            <RadzenPanelMenuItem Text="Leaderboards" Icon="leaderboard" Path="/leaderboards" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
 
-        <article class="content px-4">
+    <RadzenBody>
+        <main role="main" class="rz-p-4">
+            <RadzenComponents />
             @Body
-        </article>
-    </main>
-</div>
+        </main>
+    </RadzenBody>
+</RadzenLayout>
+
+@code {
+    bool sidebarExpanded = true;
+}

@@ -3,12 +3,13 @@ using Po.LearnCert.Api.Middleware;
 using Po.LearnCert.Api.Features.Authentication.Infrastructure;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
 using Po.LearnCert.Api.Features.Quiz.Services;
+using Po.LearnCert.Api.Features.Quiz.Services.Handlers;
 using Po.LearnCert.Api.Features.Certifications.Infrastructure;
 using Po.LearnCert.Api.Features.Certifications.Services;
 using Po.LearnCert.Api.Features.Leaderboards.Infrastructure;
 using Po.LearnCert.Api.Features.Leaderboards.Services;
-using Po.LearnCert.Api.Repositories;
-using Po.LearnCert.Api.Services;
+using Po.LearnCert.Api.Features.Statistics.Repositories;
+using Po.LearnCert.Api.Features.Statistics.Services;
 using Po.LearnCert.Api.Health;
 using Po.LearnCert.Api.Infrastructure;
 using Azure.Data.Tables;
@@ -105,6 +106,10 @@ try
     builder.Services.AddScoped<ISubtopicRepository, SubtopicRepository>();
     builder.Services.AddScoped<ILeaderboardRepository, LeaderboardRepository>();
 
+    // Register handlers
+    builder.Services.AddScoped<IAnswerSubmissionHandler, AnswerSubmissionHandler>();
+    builder.Services.AddScoped<IQuizCompletionHandler, QuizCompletionHandler>();
+
     // Register services
     builder.Services.AddScoped<ICertificationService, CertificationService>();
     builder.Services.AddScoped<IQuizSessionService, QuizSessionService>();
@@ -122,9 +127,10 @@ try
 
     var app = builder.Build();
 
-    // Seed data on startup
-    using (var scope = app.Services.CreateScope())
+    // Seed data on startup (skip during integration tests)
+    if (!app.Environment.IsEnvironment("Testing"))
     {
+        using var scope = app.Services.CreateScope();
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         await seeder.SeedAsync();
     }
@@ -144,7 +150,10 @@ try
         });
     }
 
-    app.UseHttpsRedirection();
+    if (!app.Environment.IsEnvironment("Testing"))
+    {
+        app.UseHttpsRedirection();
+    }
 
     // Serve Blazor WebAssembly static files
     app.UseBlazorFrameworkFiles();

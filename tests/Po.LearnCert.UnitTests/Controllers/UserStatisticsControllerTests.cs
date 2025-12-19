@@ -1,8 +1,8 @@
 using Xunit;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Po.LearnCert.Api.Controllers;
-using Po.LearnCert.Api.Services;
+using Po.LearnCert.Api.Features.Statistics;
+using Po.LearnCert.Api.Features.Statistics.Services;
 using Po.LearnCert.Shared.Models;
 
 namespace Po.LearnCert.UnitTests.Controllers;
@@ -10,12 +10,12 @@ namespace Po.LearnCert.UnitTests.Controllers;
 public class UserStatisticsControllerTests
 {
     private readonly Mock<IUserStatisticsService> _mockService;
-    private readonly UserStatisticsController _controller;
+    private readonly StatisticsController _controller;
 
     public UserStatisticsControllerTests()
     {
         _mockService = new Mock<IUserStatisticsService>();
-        _controller = new UserStatisticsController(_mockService.Object);
+        _controller = new StatisticsController(_mockService.Object);
     }
 
     [Fact]
@@ -49,11 +49,21 @@ public class UserStatisticsControllerTests
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
-    [InlineData(null)]
-    public async Task GetUserStatistics_WithInvalidUserId_ReturnsBadRequest(string? userId)
+    public async Task GetUserStatistics_WithInvalidUserId_ReturnsBadRequest(string userId)
     {
         // Act
         var result = await _controller.GetUserStatistics(userId);
+
+        // Assert
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
+        Assert.Equal("User ID is required.", badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task GetStatistics_WithNullUserId_ReturnsBadRequest()
+    {
+        // Act
+        var result = await _controller.GetStatistics(null);
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
@@ -101,7 +111,7 @@ public class UserStatisticsControllerTests
             .ReturnsAsync(performance);
 
         // Act
-        var result = await _controller.GetSubtopicPerformance(userId, certificationId);
+        var result = await _controller.GetUserSubtopicPerformance(userId, certificationId);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -135,7 +145,7 @@ public class UserStatisticsControllerTests
             .ReturnsAsync(performance);
 
         // Act
-        var result = await _controller.GetSubtopicPerformance(userId);
+        var result = await _controller.GetUserSubtopicPerformance(userId, null);
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
@@ -146,11 +156,10 @@ public class UserStatisticsControllerTests
     [Theory]
     [InlineData("")]
     [InlineData(" ")]
-    [InlineData(null)]
-    public async Task GetSubtopicPerformance_WithInvalidUserId_ReturnsBadRequest(string? userId)
+    public async Task GetSubtopicPerformance_WithInvalidUserId_ReturnsBadRequest(string userId)
     {
         // Act
-        var result = await _controller.GetSubtopicPerformance(userId);
+        var result = await _controller.GetUserSubtopicPerformance(userId);
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result.Result);
@@ -261,59 +270,4 @@ public class UserStatisticsControllerTests
         Assert.Null(returnedHistory.DateRange);
     }
 
-    [Fact]
-    public async Task UpdateStatisticsAfterSession_WithValidParameters_ReturnsOk()
-    {
-        // Arrange
-        var userId = "test-user";
-        var sessionId = "session-123";
-
-        _mockService.Setup(x => x.UpdateStatisticsAfterSessionAsync(userId, sessionId))
-            .Returns(Task.CompletedTask);
-
-        // Act
-        var result = await _controller.UpdateStatisticsAfterSession(userId, sessionId);
-
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        Assert.Equal("Statistics updated successfully.", okResult.Value);
-        _mockService.Verify(x => x.UpdateStatisticsAfterSessionAsync(userId, sessionId), Times.Once);
-    }
-
-    [Theory]
-    [InlineData("", "session-123")]
-    [InlineData(" ", "session-123")]
-    [InlineData(null, "session-123")]
-    [InlineData("user-123", "")]
-    [InlineData("user-123", " ")]
-    [InlineData("user-123", null)]
-    public async Task UpdateStatisticsAfterSession_WithInvalidParameters_ReturnsBadRequest(string? userId, string? sessionId)
-    {
-        // Act
-        var result = await _controller.UpdateStatisticsAfterSession(userId, sessionId);
-
-        // Assert
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        var message = badRequestResult.Value?.ToString();
-        Assert.True(message?.Contains("required") == true);
-    }
-
-    [Fact]
-    public async Task UpdateStatisticsAfterSession_WhenServiceThrows_ReturnsInternalServerError()
-    {
-        // Arrange
-        var userId = "test-user";
-        var sessionId = "session-123";
-
-        _mockService.Setup(x => x.UpdateStatisticsAfterSessionAsync(userId, sessionId))
-            .ThrowsAsync(new Exception("Update failed"));
-
-        // Act
-        var result = await _controller.UpdateStatisticsAfterSession(userId, sessionId);
-
-        // Assert
-        var statusResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(500, statusResult.StatusCode);
-        Assert.Contains("Update failed", statusResult.Value?.ToString());
-    }
 }

@@ -1,11 +1,11 @@
 using Xunit;
 using FluentAssertions;
 using Moq;
-using Po.LearnCert.Api.Services;
-using Po.LearnCert.Api.Repositories;
+using Po.LearnCert.Api.Features.Statistics.Services;
+using Po.LearnCert.Api.Features.Statistics.Repositories;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
 using Po.LearnCert.Api.Features.Certifications.Infrastructure;
-using Po.LearnCert.Api.Entities;
+using Po.LearnCert.Api.Features.Statistics.Entities;
 using Po.LearnCert.Shared.Models;
 using System;
 using System.Collections.Generic;
@@ -43,7 +43,7 @@ public class StatisticsServiceTests
         _mockRepository
             .Setup(r => r.GetUserStatisticsAsync(userId))
             .ReturnsAsync((UserStatisticsEntity?)null);
-        
+
         _mockRepository
             .Setup(r => r.GetCertificationPerformanceAsync(userId))
             .ReturnsAsync(new List<CertificationPerformanceEntity>());
@@ -82,7 +82,7 @@ public class StatisticsServiceTests
         _mockRepository
             .Setup(r => r.GetUserStatisticsAsync(userId))
             .ReturnsAsync(statsEntity);
-        
+
         _mockRepository
             .Setup(r => r.GetCertificationPerformanceAsync(userId))
             .ReturnsAsync(new List<CertificationPerformanceEntity>());

@@ -3,5 +3,6 @@
     "version": "9.0.100",
     "rollForward": "latestMinor",
     "allowPrerelease": true
-  }
+  },
+  "// TODO": "Update to 10.x.x when .NET 10 SDK is released (target: Nov 2025)"
 }

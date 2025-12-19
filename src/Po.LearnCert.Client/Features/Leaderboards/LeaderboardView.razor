@@ -5,98 +5,124 @@
 
 <PageTitle>Leaderboards - PoLearnCert</PageTitle>
 
-<div class="leaderboard-container">
-    <h1>🏆 Leaderboards</h1>
+<RadzenStack Gap="1.5rem">
+    <RadzenText TextStyle="TextStyle.H4" Text="Leaderboards" Style="margin: 0;" />
     
-    <LeaderboardFilters
-        OnFilterChanged="HandleFilterChanged"
-        IsLoading="@isLoading" />
+    <RadzenCard>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" Wrap="FlexWrap.Wrap" class="rz-mb-4">
+            <RadzenStack Gap="0.25rem">
+                <RadzenText TextStyle="TextStyle.Caption" Text="Certification" />
+                <RadzenDropDown @bind-Value="@selectedCertId" 
+                               Data="@certifications" 
+                               TextProperty="Name" 
+                               ValueProperty="Id"
+                               Change="@OnFilterChanged"
+                               Disabled="@isLoading"
+                               Style="min-width: 280px;" />
+            </RadzenStack>
+            
+            <RadzenStack Gap="0.25rem">
+                <RadzenText TextStyle="TextStyle.Caption" Text="Time Period" />
+                <RadzenDropDown @bind-Value="@selectedTimePeriod" 
+                               Data="@timePeriods" 
+                               TextProperty="Name" 
+                               ValueProperty="Id"
+                               Change="@OnFilterChanged"
+                               Disabled="@isLoading"
+                               Style="min-width: 150px;" />
+            </RadzenStack>
+        </RadzenStack>
 
-    @if (isLoading)
-    {
-        <div class="loading-spinner">
-            <p>Loading leaderboard...</p>
-        </div>
-    }
-    else if (leaderboard == null || !leaderboard.Entries.Any())
-    {
-        <div class="no-data">
-            <p>No leaderboard entries found for this certification and time period.</p>
-            <p>Be the first to take a quiz!</p>
-        </div>
-    }
-    else
-    {
-        <div class="leaderboard-header">
-            <h2>@leaderboard.CertificationName</h2>
-            <p class="time-period">@GetTimePeriodDisplay(leaderboard.TimePeriod)</p>
-            <p class="total-entries">Total participants: @leaderboard.TotalEntries</p>
-        </div>
+        @if (isLoading)
+        {
+            <RadzenStack Gap="0.75rem">
+                @for (int i = 0; i < 5; i++)
+                {
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center" class="rz-py-3 rz-border-bottom">
+                        <RadzenSkeleton Shape="SkeletonShape.Circle" Width="40px" Height="40px" />
+                        <RadzenSkeleton Width="150px" Height="20px" />
+                        <RadzenSkeleton Width="80px" Height="20px" Style="margin-left: auto;" />
+                    </RadzenStack>
+                }
+            </RadzenStack>
+        }
+        else if (leaderboard == null || !leaderboard.Entries.Any())
+        {
+            <RadzenStack AlignItems="AlignItems.Center" Gap="1rem" class="rz-py-6">
+                <RadzenText Text="🏅" Style="font-size: 3rem;" />
+                <RadzenText TextStyle="TextStyle.H6" Text="No leaderboard entries yet" />
+                <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary" Text="Be the first to take a quiz and claim the top spot!" />
+                <RadzenButton Text="Start Quiz" Icon="play_arrow" Click="@(() => Navigation.NavigateTo("/quiz"))" />
+            </RadzenStack>
+        }
+        else
+        {
+            <RadzenStack Gap="0.5rem" class="rz-mb-4">
+                <RadzenText TextStyle="TextStyle.H6" Text="@leaderboard.CertificationName" Style="margin: 0;" />
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem">
+                    <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@GetTimePeriodDisplay(leaderboard.TimePeriod)" />
+                    <RadzenText TextStyle="TextStyle.Caption" class="rz-color-secondary">
+                        @leaderboard.TotalEntries participants
+                    </RadzenText>
+                </RadzenStack>
+            </RadzenStack>
 
-        <div class="leaderboard-table">
-            <div class="leaderboard-row header-row">
-                <div class="rank-col">Rank</div>
-                <div class="user-col">User</div>
-                <div class="score-col">Best Score</div>
-                <div class="quizzes-col">Quizzes</div>
-                <div class="avg-col">Avg Score</div>
-                <div class="date-col">Last Attempt</div>
-            </div>
-
-            @foreach (var entry in leaderboard.Entries)
-            {
-                <div class="leaderboard-row @(entry.IsCurrentUser ? "current-user" : "")">
-                    <div class="rank-col">
-                        <span class="rank-badge @GetRankClass(entry.Rank)">
+            <RadzenDataGrid @ref="grid" 
+                           Data="@leaderboard.Entries" 
+                           TItem="LeaderboardEntryDto"
+                           AllowPaging="true" 
+                           PageSize="15"
+                           PagerHorizontalAlign="HorizontalAlign.Center"
+                           AllowSorting="true"
+                           Density="Density.Compact"
+                           RowRender="@OnRowRender">
+                <Columns>
+                    <RadzenDataGridColumn TItem="LeaderboardEntryDto" Title="Rank" Width="80px" TextAlign="TextAlign.Center" Sortable="false">
+                        <Template Context="entry">
                             @if (entry.Rank <= 3)
                             {
-                                <span class="rank-medal">@GetMedalEmoji(entry.Rank)</span>
+                                <RadzenBadge BadgeStyle="@GetMedalStyle(entry.Rank)" IsPill="true" Style="font-size: 1rem;">
+                                    @GetMedalEmoji(entry.Rank)
+                                </RadzenBadge>
                             }
                             else
                             {
-                                <span>#@entry.Rank</span>
+                                <RadzenText Text="@($"#{entry.Rank}")" class="rz-color-secondary" />
                             }
-                        </span>
-                    </div>
-                    <div class="user-col">
-                        <strong>@entry.Username</strong>
-                        @if (entry.IsCurrentUser)
-                        {
-                            <span class="you-badge">YOU</span>
-                        }
-                    </div>
-                    <div class="score-col">
-                        <span class="best-score">@entry.BestScore%</span>
-                    </div>
-                    <div class="quizzes-col">@entry.QuizzesTaken</div>
-                    <div class="avg-col">@entry.AverageScore.ToString("F1")%</div>
-                    <div class="date-col">@entry.LastAttemptDate.ToString("MMM dd, yyyy")</div>
-                </div>
-            }
-        </div>
-
-        @if (leaderboard.TotalEntries > currentTake)
-        {
-            <div class="pagination">
-                @if (currentSkip > 0)
-                {
-                    <button class="btn-page" @onclick="LoadPreviousPage">← Previous</button>
-                }
-                
-                <span class="page-info">
-                    Showing @(currentSkip + 1) - @(Math.Min(currentSkip + currentTake, leaderboard.TotalEntries)) of @leaderboard.TotalEntries
-                </span>
-
-                @if (currentSkip + currentTake < leaderboard.TotalEntries)
-                {
-                    <button class="btn-page" @onclick="LoadNextPage">Next →</button>
-                }
-            </div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn TItem="LeaderboardEntryDto" Property="Username" Title="User" MinWidth="150px">
+                        <Template Context="entry">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                                <RadzenText Text="@entry.Username" Style="@(entry.IsCurrentUser ? "font-weight: 600;" : "")" />
+                                @if (entry.IsCurrentUser)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="You" IsPill="true" />
+                                }
+                            </RadzenStack>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn TItem="LeaderboardEntryDto" Property="BestScore" Title="Best Score" Width="120px" TextAlign="TextAlign.End">
+                        <Template Context="entry">
+                            <RadzenText Text="@($"{entry.BestScore}%")" Style="font-weight: 600; color: var(--rz-primary);" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn TItem="LeaderboardEntryDto" Property="QuizzesTaken" Title="Quizzes" Width="100px" TextAlign="TextAlign.End" class="rz-display-none rz-display-md-table-cell" />
+                    
+                    <RadzenDataGridColumn TItem="LeaderboardEntryDto" Property="AverageScore" Title="Average" Width="100px" TextAlign="TextAlign.End" FormatString="{0:F1}%" class="rz-display-none rz-display-lg-table-cell" />
+                    
+                    <RadzenDataGridColumn TItem="LeaderboardEntryDto" Property="LastAttemptDate" Title="Last Attempt" Width="130px" TextAlign="TextAlign.End" FormatString="{0:MMM dd, yyyy}" class="rz-display-none rz-display-xl-table-cell" />
+                </Columns>
+            </RadzenDataGrid>
         }
-    }
-</div>
+    </RadzenCard>
+</RadzenStack>
 
 @code {
+    private RadzenDataGrid<LeaderboardEntryDto>? grid;
     private LeaderboardDto? leaderboard;
     private bool isLoading = true;
     private string selectedCertId = "AZ-900";
@@ -104,17 +130,30 @@
     private int currentSkip = 0;
     private int currentTake = 50;
     private string? currentUserId = "user123"; // TODO: Get from auth context
+    
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private List<CertOption> certifications = new()
+    {
+        new("AZ-900", "Microsoft Azure Fundamentals (AZ-900)"),
+        new("SecurityPlus", "CompTIA Security+ (SY0-701)")
+    };
+    
+    private List<TimePeriodOption> timePeriods = new()
+    {
+        new("AllTime", "All Time"),
+        new("Monthly", "This Month"),
+        new("Weekly", "This Week")
+    };
 
     protected override async Task OnInitializedAsync()
     {
         await LoadLeaderboard();
     }
 
-    private async Task HandleFilterChanged((string certId, string timePeriod) filter)
+    private async Task OnFilterChanged()
     {
-        selectedCertId = filter.certId;
-        selectedTimePeriod = filter.timePeriod;
-        currentSkip = 0; // Reset pagination
+        currentSkip = 0;
         await LoadLeaderboard();
     }
 
@@ -143,32 +182,28 @@
         }
     }
 
-    private async Task LoadNextPage()
+    private void OnRowRender(RowRenderEventArgs<LeaderboardEntryDto> args)
     {
-        currentSkip += currentTake;
-        await LoadLeaderboard();
-    }
-
-    private async Task LoadPreviousPage()
-    {
-        currentSkip = Math.Max(0, currentSkip - currentTake);
-        await LoadLeaderboard();
+        if (args.Data.IsCurrentUser)
+        {
+            args.Attributes.Add("style", "background-color: var(--rz-primary-lighter); font-weight: 500;");
+        }
     }
 
     private string GetTimePeriodDisplay(string timePeriod) => timePeriod switch
     {
-        "AllTime" => "All Time Rankings",
+        "AllTime" => "All Time",
         "Monthly" => "This Month",
         "Weekly" => "This Week",
         _ => timePeriod
     };
 
-    private string GetRankClass(int rank) => rank switch
+    private BadgeStyle GetMedalStyle(int rank) => rank switch
     {
-        1 => "rank-gold",
-        2 => "rank-silver",
-        3 => "rank-bronze",
-        _ => ""
+        1 => BadgeStyle.Warning,
+        2 => BadgeStyle.Light,
+        3 => BadgeStyle.Info,
+        _ => BadgeStyle.Secondary
     };
 
     private string GetMedalEmoji(int rank) => rank switch
@@ -178,4 +213,7 @@
         3 => "🥉",
         _ => ""
     };
+    
+    private record CertOption(string Id, string Name);
+    private record TimePeriodOption(string Id, string Name);
 }

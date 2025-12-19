@@ -1,21 +1,28 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Po.LearnCert.Shared.Contracts;
 using Xunit;
+using Po.LearnCert.IntegrationTests.Infrastructure;
 
 namespace Po.LearnCert.IntegrationTests.Features.Authentication;
 
-public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection("Azurite collection")]
+public class AuthEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactoryWithAzurite<Program> _factory;
 
-    public AuthEndpointsTests(WebApplicationFactory<Program> factory)
+    public AuthEndpointsTests(AzuriteFixture azuriteFixture)
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        _factory = new TestWebApplicationFactoryWithAzurite<Program>(azuriteFixture);
+        _client = _factory.CreateClient();
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
     }
 
     [Fact]
@@ -35,7 +42,7 @@ public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        
+
         var result = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
         Assert.NotNull(result);
         Assert.True(result.Succeeded);
@@ -104,7 +111,7 @@ public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        
+
         var result = await response.Content.ReadFromJsonAsync<AuthenticationResponse>();
         Assert.NotNull(result);
         Assert.True(result.Succeeded);
@@ -165,7 +172,7 @@ public class AuthEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         // Note: The endpoint returns 400 BadRequest when session not found
         // rather than 401 Unauthorized because authentication isn't enforced yet
         Assert.True(
-            response.StatusCode == HttpStatusCode.Unauthorized || 
+            response.StatusCode == HttpStatusCode.Unauthorized ||
             response.StatusCode == HttpStatusCode.NotFound ||
             response.StatusCode == HttpStatusCode.BadRequest,
             $"Expected 401, 404, or 400 but got {response.StatusCode}");

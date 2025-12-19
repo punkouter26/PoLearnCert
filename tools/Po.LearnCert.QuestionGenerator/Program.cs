@@ -1,7 +1,10 @@
 using Azure.AI.OpenAI;
 using Azure.Data.Tables;
+using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Chat;
+using Polly;
+using Polly.Retry;
 using System.ClientModel;
 using System.Text.Json;
 
@@ -17,11 +20,30 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 // Get configuration values
-var tableConnectionString = configuration["AzureTableStorage:ConnectionString"];
+var tableStorageEndpoint = configuration["AzureTableStorage:Endpoint"];
+var tableConnectionString = configuration["AzureTableStorage:ConnectionString"]; // Fallback for Azurite
 var openAiEndpoint = configuration["AzureOpenAI:Endpoint"];
-var openAiKey = configuration["AzureOpenAI:Key"];
 var openAiDeployment = configuration["AzureOpenAI:DeploymentName"];
 var defaultQuestionsPerSubtopic = configuration.GetValue<int>("SeedData:QuestionsPerSubtopic", 25);
+var useLocalEmulator = configuration.GetValue<bool>("UseLocalEmulator", true);
+
+// Polly resilience pipeline for API calls (retry with jitter + circuit breaker)
+var resiliencePipeline = new ResiliencePipelineBuilder()
+    .AddRetry(new RetryStrategyOptions
+    {
+        MaxRetryAttempts = 3,
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        Delay = TimeSpan.FromSeconds(1)
+    })
+    .AddCircuitBreaker(new Polly.CircuitBreaker.CircuitBreakerStrategyOptions
+    {
+        FailureRatio = 0.5,
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        MinimumThroughput = 5,
+        BreakDuration = TimeSpan.FromSeconds(30)
+    })
+    .Build();
 
 Console.WriteLine("╔════════════════════════════════════════════════════╗");
 Console.WriteLine("║   PoLearnCert AI Question Generator               ║");
@@ -29,24 +51,33 @@ Console.WriteLine("╚═══════════════════�
 Console.WriteLine();
 
 // Validate configuration
-if (string.IsNullOrEmpty(tableConnectionString))
+if (!useLocalEmulator && string.IsNullOrEmpty(tableStorageEndpoint))
 {
     Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("❌ Error: Azure Table Storage connection string not configured");
+    Console.WriteLine("❌ Error: Azure Table Storage endpoint not configured");
+    Console.WriteLine("   Set AzureTableStorage:Endpoint or UseLocalEmulator=true for Azurite");
     Console.ResetColor();
     return;
 }
 
-if (string.IsNullOrEmpty(openAiEndpoint) || string.IsNullOrEmpty(openAiKey) || string.IsNullOrEmpty(openAiDeployment))
+if (useLocalEmulator && string.IsNullOrEmpty(tableConnectionString))
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("❌ Error: Azurite connection string not configured");
+    Console.ResetColor();
+    return;
+}
+
+if (string.IsNullOrEmpty(openAiEndpoint) || string.IsNullOrEmpty(openAiDeployment))
 {
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("❌ Error: Azure OpenAI configuration incomplete");
-    Console.WriteLine("   Please configure Endpoint, Key, and DeploymentName in appsettings.json");
+    Console.WriteLine("   Please configure Endpoint and DeploymentName (uses DefaultAzureCredential)");
     Console.ResetColor();
     return;
 }
 
-Console.WriteLine($"🔗 Storage: {(tableConnectionString.Contains("UseDevelopmentStorage") ? "Azurite (Local)" : "Azure")}");
+Console.WriteLine($"🔗 Storage: {(useLocalEmulator ? "Azurite (Local)" : "Azure (Managed Identity)")}");
 Console.WriteLine($"🤖 AI Model: {openAiDeployment}");
 Console.WriteLine();
 
@@ -159,9 +190,16 @@ else
 
 Console.WriteLine();
 
-// Initialize clients
-var tableServiceClient = new TableServiceClient(tableConnectionString);
-var openAiClient = new AzureOpenAIClient(new Uri(openAiEndpoint!), new ApiKeyCredential(openAiKey!));
+// Initialize clients using DefaultAzureCredential (Key Vault compatible)
+var credential = new DefaultAzureCredential();
+
+var tableServiceClient = useLocalEmulator
+    ? new TableServiceClient(tableConnectionString)
+    : new TableServiceClient(new Uri(tableStorageEndpoint!), new TableSharedKeyCredential(
+        configuration["AzureTableStorage:AccountName"] ?? "polearncert",
+        configuration["AzureTableStorage:AccountKey"] ?? throw new InvalidOperationException("AccountKey required for Azure mode")));
+
+var openAiClient = new AzureOpenAIClient(new Uri(openAiEndpoint!), credential);
 var chatClient = openAiClient.GetChatClient(openAiDeployment);
 
 // Seed data
@@ -349,65 +387,62 @@ async Task GenerateAndSeedQuestions(TableServiceClient serviceClient, ChatClient
 }
 
 // ============================================================================
-// GENERATE SINGLE QUESTION USING AZURE OPENAI
+// GENERATE SINGLE QUESTION USING AZURE OPENAI (with Polly resilience)
 // ============================================================================
 
 async Task<GeneratedQuestion?> GenerateQuestion(ChatClient chatClient, string subtopicName, string certificationId)
 {
-    const int maxRetries = 3;
-    const int baseDelayMs = 1000; // Start with 1 second
-
-    for (int attempt = 0; attempt <= maxRetries; attempt++)
+    try
     {
-        try
+        return await resiliencePipeline.ExecuteAsync(async cancellationToken =>
         {
-            var systemPrompt = @"You are an expert certification exam question writer. Generate realistic, high-quality multiple-choice questions for IT certification exams.
+            var systemPrompt = """
+                You are an expert certification exam question writer. Generate realistic, high-quality multiple-choice questions for IT certification exams.
 
-Requirements:
-1. Generate ONE question with EXACTLY 4 answer choices
-2. Only ONE choice should be correct
-3. Include a detailed explanation (2-3 sentences) explaining why the correct answer is right
-4. Set appropriate difficulty level: Beginner, Intermediate, or Advanced
-5. Make distractors (wrong answers) plausible but clearly incorrect to someone with proper knowledge
-6. Focus on practical scenarios and real-world applications
-7. Return ONLY valid JSON, no additional text or markdown formatting
+                Requirements:
+                1. Generate ONE question with EXACTLY 4 answer choices
+                2. Only ONE choice should be correct
+                3. Include a detailed explanation (2-3 sentences) explaining why the correct answer is right
+                4. Set appropriate difficulty level: Beginner, Intermediate, or Advanced
+                5. Make distractors (wrong answers) plausible but clearly incorrect to someone with proper knowledge
+                6. Focus on practical scenarios and real-world applications
+                7. Return ONLY valid JSON, no additional text or markdown formatting
 
-JSON Format:
-{
-  ""text"": ""The question text here?"",
-  ""explanation"": ""Detailed explanation of why the correct answer is right and others are wrong."",
-  ""difficultyLevel"": ""Intermediate"",
-  ""choices"": [
-    {""text"": ""Choice A"", ""isCorrect"": false},
-    {""text"": ""Choice B"", ""isCorrect"": true},
-    {""text"": ""Choice C"", ""isCorrect"": false},
-    {""text"": ""Choice D"", ""isCorrect"": false}
-  ]
-}";
+                JSON Format:
+                {
+                  "text": "The question text here?",
+                  "explanation": "Detailed explanation of why the correct answer is right and others are wrong.",
+                  "difficultyLevel": "Intermediate",
+                  "choices": [
+                    {"text": "Choice A", "isCorrect": false},
+                    {"text": "Choice B", "isCorrect": true},
+                    {"text": "Choice C", "isCorrect": false},
+                    {"text": "Choice D", "isCorrect": false}
+                  ]
+                }
+                """;
 
             var userPrompt = $"Generate a certification exam question about '{subtopicName}' for the {certificationId} certification. Make it practical and scenario-based.";
 
-            var messages = new List<ChatMessage>
-            {
+            List<ChatMessage> messages = [
                 new SystemChatMessage(systemPrompt),
                 new UserChatMessage(userPrompt)
-            };
+            ];
 
             var response = await chatClient.CompleteChatAsync(messages, new ChatCompletionOptions
             {
                 Temperature = 0.7f,
                 MaxOutputTokenCount = 500
-            });
+            }, cancellationToken);
 
-            var content = response.Value.Content[0].Text;
+            var content = response.Value.Content[0].Text.Trim();
 
             // Clean up markdown formatting if present
-            content = content.Trim();
             if (content.StartsWith("```json"))
             {
-                content = content.Substring(7);
+                content = content[7..];
                 if (content.EndsWith("```"))
-                    content = content.Substring(0, content.Length - 3);
+                    content = content[..^3];
                 content = content.Trim();
             }
 
@@ -415,22 +450,16 @@ JSON Format:
             var jsonDocument = JsonDocument.Parse(content);
             var root = jsonDocument.RootElement;
 
-            var question = new GeneratedQuestion
-            {
-                Text = root.GetProperty("text").GetString()!,
-                Explanation = root.GetProperty("explanation").GetString()!,
-                DifficultyLevel = root.GetProperty("difficultyLevel").GetString()!,
-                Choices = new List<GeneratedChoice>()
-            };
+            List<GeneratedChoice> choices = [.. root.GetProperty("choices").EnumerateArray()
+                .Select(choice => new GeneratedChoice(
+                    choice.GetProperty("text").GetString()!,
+                    choice.GetProperty("isCorrect").GetBoolean()))];
 
-            foreach (var choice in root.GetProperty("choices").EnumerateArray())
-            {
-                question.Choices.Add(new GeneratedChoice
-                {
-                    Text = choice.GetProperty("text").GetString()!,
-                    IsCorrect = choice.GetProperty("isCorrect").GetBoolean()
-                });
-            }
+            var question = new GeneratedQuestion(
+                root.GetProperty("text").GetString()!,
+                root.GetProperty("explanation").GetString()!,
+                root.GetProperty("difficultyLevel").GetString()!,
+                choices);
 
             // Validate exactly 4 choices and exactly 1 correct answer
             if (question.Choices.Count != 4)
@@ -451,54 +480,27 @@ JSON Format:
             }
 
             return question;
-        }
-        catch (ClientResultException ex) when (ex.Status == 429 && attempt < maxRetries)
-        {
-            // Rate limit hit - retry with exponential backoff
-            var delayMs = baseDelayMs * (int)Math.Pow(2, attempt);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"\n    ⚠ Rate limit hit. Retrying in {delayMs}ms... (Attempt {attempt + 1}/{maxRetries})");
-            Console.ResetColor();
-            await Task.Delay(delayMs);
-            continue;
-        }
-        catch (Exception ex) when (attempt < maxRetries)
-        {
-            // Generic error - retry with shorter delay
-            var delayMs = baseDelayMs;
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"\n    ⚠ Error: {ex.Message}. Retrying in {delayMs}ms... (Attempt {attempt + 1}/{maxRetries})");
-            Console.ResetColor();
-            await Task.Delay(delayMs);
-            continue;
-        }
-        catch (Exception ex)
-        {
-            // Final attempt failed
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"\n    ✗ Failed after {maxRetries} attempts: {ex.Message}");
-            Console.ResetColor();
-            return null;
-        }
+        });
     }
-
-    return null;
+    catch (Exception ex)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"\n    ✗ Failed after retries: {ex.Message}");
+        Console.ResetColor();
+        return null;
+    }
 }
 
 // ============================================================================
-// HELPER CLASSES FOR GENERATED QUESTIONS
+// HELPER RECORDS FOR GENERATED QUESTIONS (C# 14+ primary constructors)
 // ============================================================================
 
-class GeneratedQuestion
-{
-    public string Text { get; set; } = string.Empty;
-    public string Explanation { get; set; } = string.Empty;
-    public string DifficultyLevel { get; set; } = "Intermediate";
-    public List<GeneratedChoice> Choices { get; set; } = new();
-}
+record GeneratedQuestion(
+    string Text,
+    string Explanation,
+    string DifficultyLevel,
+    List<GeneratedChoice> Choices);
 
-class GeneratedChoice
-{
-    public string Text { get; set; } = string.Empty;
-    public bool IsCorrect { get; set; }
-}
+record GeneratedChoice(
+    string Text,
+    bool IsCorrect);

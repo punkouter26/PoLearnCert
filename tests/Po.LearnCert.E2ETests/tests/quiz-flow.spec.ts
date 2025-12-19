@@ -6,11 +6,11 @@ test.describe('Complete Quiz Flow', () => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
-    // Step 2: Wait for quiz setup page to load
-    await page.waitForSelector('.quiz-setup-container, .setup-form, form', { timeout: 15000 });
+    // Step 2: Wait for quiz setup page to load - match actual Blazor selectors
+    await page.waitForSelector('.quiz-setup-container, .setup-form', { timeout: 15000 });
     
-    // Step 3: Check if certification dropdown is available
-    const certDropdown = page.locator('select#certification, select[name="certification"]').first();
+    // Step 3: Check if certification dropdown is available (Blazor uses select#certification)
+    const certDropdown = page.locator('select#certification').first();
     const hasCertDropdown = await certDropdown.isVisible().catch(() => false);
     
     if (hasCertDropdown) {
@@ -21,14 +21,14 @@ test.describe('Complete Quiz Flow', () => {
       const options = await certDropdown.locator('option').count();
       
       if (options > 1) {
-        // Select a certification (skip first option which is usually placeholder)
+        // Select a certification (skip first option which is placeholder)
         await certDropdown.selectOption({ index: 1 });
         await page.waitForTimeout(500);
       }
     }
     
-    // Step 4: Set question count
-    const questionInput = page.locator('input#questionCount, input[name="questionCount"], input[type="number"]').first();
+    // Step 4: Set question count (Blazor uses input#questionCount)
+    const questionInput = page.locator('input#questionCount').first();
     const hasQuestionInput = await questionInput.isVisible().catch(() => false);
     
     if (hasQuestionInput) {
@@ -36,8 +36,8 @@ test.describe('Complete Quiz Flow', () => {
       await questionInput.fill('5');
     }
     
-    // Step 5: Start quiz
-    const startButton = page.locator('button.btn-primary, button[type="submit"]').filter({ hasText: /Start|Begin|Create/i }).first();
+    // Step 5: Start quiz (Blazor uses button.btn-primary)
+    const startButton = page.locator('button.btn-primary').filter({ hasText: /Start Quiz|Creating Session/i }).first();
     const hasStartButton = await startButton.isVisible().catch(() => false);
     
     if (hasStartButton) {
@@ -48,8 +48,8 @@ test.describe('Complete Quiz Flow', () => {
       
       // Check if we navigated to quiz session or see loading state
       const currentUrl = page.url();
-      const isOnSession = currentUrl.includes('/quiz/session') || currentUrl.includes('/quiz/active');
-      const hasLoading = await page.locator('.loading, .spinner').isVisible().catch(() => false);
+      const isOnSession = currentUrl.includes('/quiz/session') || currentUrl.includes('/quiz/');
+      const hasLoading = await page.locator('.loading').isVisible().catch(() => false);
       
       expect(isOnSession || hasLoading).toBeTruthy();
     }
@@ -58,18 +58,28 @@ test.describe('Complete Quiz Flow', () => {
   test('should display quiz questions in session', async ({ page }) => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('.quiz-setup-container', { timeout: 20000 });
+    
+    // Must select certification first before Start button is enabled
+    const certDropdown = page.locator('select#certification');
+    await page.waitForTimeout(2000); // Wait for certifications to load
+    const options = await certDropdown.locator('option').count();
+    if (options > 1) {
+      await certDropdown.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
+    }
     
     // Try to start a quiz session
-    const startButton = page.locator('button.btn-primary, button[type="submit"]').first();
-    const hasButton = await startButton.isVisible({ timeout: 10000 }).catch(() => false);
+    const startButton = page.locator('button.btn-primary').filter({ hasText: /Start Quiz/i }).first();
+    const isEnabled = await startButton.isEnabled().catch(() => false);
     
-    if (hasButton) {
+    if (isEnabled) {
       await startButton.click();
       await page.waitForTimeout(3000);
       
-      // Check if question is displayed
-      const hasQuestion = await page.locator('.question, .quiz-question, [class*="question"]').isVisible().catch(() => false);
-      const hasAnswers = await page.locator('.answer, .option, input[type="radio"]').count() > 0;
+      // Check if question is displayed (actual Blazor selectors)
+      const hasQuestion = await page.locator('.quiz-question-container, .question-content').isVisible().catch(() => false);
+      const hasAnswers = await page.locator('.choice-button').count() > 0;
       
       if (hasQuestion || hasAnswers) {
         // Quiz session loaded successfully
@@ -128,18 +138,28 @@ test.describe('Quiz Session Interaction', () => {
   test('should show progress indicator in quiz', async ({ page }) => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('.quiz-setup-container', { timeout: 10000 });
+    
+    // Must select certification first before Start button is enabled
+    const certDropdown = page.locator('select#certification');
+    await page.waitForTimeout(2000); // Wait for certifications to load
+    const options = await certDropdown.locator('option').count();
+    if (options > 1) {
+      await certDropdown.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
+    }
     
     // Attempt to start quiz
-    const startButton = page.locator('button.btn-primary, button[type="submit"]').first();
-    const hasButton = await startButton.isVisible({ timeout: 10000 }).catch(() => false);
+    const startButton = page.locator('button.btn-primary').filter({ hasText: /Start Quiz/i }).first();
+    const isEnabled = await startButton.isEnabled().catch(() => false);
     
-    if (hasButton) {
+    if (isEnabled) {
       await startButton.click();
       await page.waitForTimeout(3000);
       
-      // Look for progress indicator
-      const hasProgress = await page.locator('.progress, .quiz-progress, [class*="progress"]').isVisible().catch(() => false);
-      const hasCounter = await page.locator('[class*="question-counter"], [class*="question-number"]').filter({ hasText: /\d+\/\d+|\d+ of \d+/i }).isVisible().catch(() => false);
+      // Look for progress indicator (actual Blazor selector: .progress-bar, .question-counter)
+      const hasProgress = await page.locator('.progress-bar, .progress-info').isVisible().catch(() => false);
+      const hasCounter = await page.locator('.question-counter').isVisible().catch(() => false);
       
       if (hasProgress || hasCounter) {
         expect(hasProgress || hasCounter).toBeTruthy();
@@ -150,34 +170,29 @@ test.describe('Quiz Session Interaction', () => {
   test('should allow answer selection', async ({ page }) => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('.quiz-setup-container', { timeout: 10000 });
     
-    const startButton = page.locator('button.btn-primary, button[type="submit"]').first();
-    const hasButton = await startButton.isVisible({ timeout: 10000 }).catch(() => false);
+    // Must select certification first before Start button is enabled
+    const certDropdown = page.locator('select#certification');
+    await page.waitForTimeout(2000); // Wait for certifications to load
+    const options = await certDropdown.locator('option').count();
+    if (options > 1) {
+      await certDropdown.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
+    }
     
-    if (hasButton) {
+    const startButton = page.locator('button.btn-primary').filter({ hasText: /Start Quiz/i }).first();
+    const isEnabled = await startButton.isEnabled().catch(() => false);
+    
+    if (isEnabled) {
       await startButton.click();
       await page.waitForTimeout(3000);
       
-      // Look for answer options
-      const radioInputs = page.locator('input[type="radio"]');
-      const checkboxes = page.locator('input[type="checkbox"]');
-      const answerButtons = page.locator('.answer-option, .option, button[class*="answer"]');
-      
-      const radioCount = await radioInputs.count();
-      const checkboxCount = await checkboxes.count();
+      // Look for answer options (Blazor uses .choice-button)
+      const answerButtons = page.locator('.choice-button');
       const buttonCount = await answerButtons.count();
       
-      if (radioCount > 0) {
-        // Select first radio option
-        await radioInputs.first().click();
-        const isChecked = await radioInputs.first().isChecked();
-        expect(isChecked).toBeTruthy();
-      } else if (checkboxCount > 0) {
-        // Check first checkbox
-        await checkboxes.first().click();
-        const isChecked = await checkboxes.first().isChecked();
-        expect(isChecked).toBeTruthy();
-      } else if (buttonCount > 0) {
+      if (buttonCount > 0) {
         // Click first answer button
         await answerButtons.first().click();
         await page.waitForTimeout(500);
@@ -189,11 +204,21 @@ test.describe('Quiz Session Interaction', () => {
   test('should show submit answer button', async ({ page }) => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('.quiz-setup-container', { timeout: 10000 });
     
-    const startButton = page.locator('button.btn-primary, button[type="submit"]').first();
-    const hasButton = await startButton.isVisible({ timeout: 10000 }).catch(() => false);
+    // Must select certification first before Start button is enabled
+    const certDropdown = page.locator('select#certification');
+    await page.waitForTimeout(2000); // Wait for certifications to load
+    const options = await certDropdown.locator('option').count();
+    if (options > 1) {
+      await certDropdown.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
+    }
     
-    if (hasButton) {
+    const startButton = page.locator('button.btn-primary').filter({ hasText: /Start Quiz/i }).first();
+    const isEnabled = await startButton.isEnabled().catch(() => false);
+    
+    if (isEnabled) {
       await startButton.click();
       await page.waitForTimeout(3000);
       
@@ -215,11 +240,14 @@ test.describe('Quiz Mobile Experience', () => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
     
+    // Wait for Blazor to render the quiz setup container
+    await page.waitForSelector('.quiz-setup-container', { timeout: 10000 });
+    
     // Verify mobile rendering
     await expect(page.locator('body')).toBeVisible();
     
     // Check for setup form
-    const hasForm = await page.locator('.quiz-setup-container, .setup-form, form').isVisible().catch(() => false);
+    const hasForm = await page.locator('.quiz-setup-container').isVisible().catch(() => false);
     expect(hasForm).toBeTruthy();
   });
 
@@ -244,11 +272,21 @@ test.describe('Quiz Mobile Experience', () => {
   test('should display questions properly on mobile', async ({ page }) => {
     await page.goto('/quiz/setup');
     await page.waitForLoadState('networkidle', { timeout: 15000 });
+    await page.waitForSelector('.quiz-setup-container', { timeout: 10000 });
     
-    const startButton = page.locator('button.btn-primary, button[type="submit"]').first();
-    const hasButton = await startButton.isVisible({ timeout: 10000 }).catch(() => false);
+    // Must select certification first before Start button is enabled
+    const certDropdown = page.locator('select#certification');
+    await page.waitForTimeout(2000); // Wait for certifications to load
+    const options = await certDropdown.locator('option').count();
+    if (options > 1) {
+      await certDropdown.selectOption({ index: 1 });
+      await page.waitForTimeout(500);
+    }
     
-    if (hasButton) {
+    const startButton = page.locator('button.btn-primary').filter({ hasText: /Start Quiz/i }).first();
+    const isEnabled = await startButton.isEnabled().catch(() => false);
+    
+    if (isEnabled) {
       await startButton.click();
       await page.waitForTimeout(3000);
       

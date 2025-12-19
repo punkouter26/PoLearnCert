@@ -1,9 +1,9 @@
 using Xunit;
 using Moq;
 using Microsoft.Extensions.Logging;
-using Po.LearnCert.Api.Services;
-using Po.LearnCert.Api.Repositories;
-using Po.LearnCert.Api.Entities;
+using Po.LearnCert.Api.Features.Statistics.Services;
+using Po.LearnCert.Api.Features.Statistics.Repositories;
+using Po.LearnCert.Api.Features.Statistics.Entities;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
 using Po.LearnCert.Api.Features.Certifications.Infrastructure;
 using Po.LearnCert.Shared.Models;

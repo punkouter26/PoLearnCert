@@ -1,0 +1,19 @@
+<RadzenCard>
+    <RadzenStack AlignItems="AlignItems.Center" Gap="1.5rem" class="rz-py-6">
+        <RadzenText Text="📊" Style="font-size: 4rem;" />
+        <RadzenText TextStyle="TextStyle.H5" Text="No Statistics Available" />
+        <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary rz-text-align-center" 
+                   Text="Complete your first quiz session to see your performance statistics." />
+        <RadzenButton Text="Start First Quiz" Icon="play_arrow" Click="@OnStartQuizClick" />
+    </RadzenStack>
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public EventCallback OnStartQuiz { get; set; }
+
+    private async Task OnStartQuizClick()
+    {
+        await OnStartQuiz.InvokeAsync();
+    }
+}

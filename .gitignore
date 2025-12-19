@@ -42,6 +42,20 @@ bld/
 # Azurite local storage
 azurite-data/
 azurite-debug.log
+__azurite_db*.json
+__blobstorage__/
+__queuestorage__/
+AzuriteConfig
+
+# Playwright test artifacts
+tests/Po.LearnCert.E2ETests/playwright-report/
+tests/Po.LearnCert.E2ETests/test-results/
+
+# API logs
+src/Po.LearnCert.Api/logs/
+
+# Blazor template leftovers
+src/Po.LearnCert.Client/wwwroot/sample-data/
 
 # User-specific files
 *.rsuser

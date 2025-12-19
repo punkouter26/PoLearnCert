@@ -1,41 +1,29 @@
-/* Answer Feedback Styles */
+/* Answer Feedback - Minimal Styles */
 
 .feedback-container {
     max-width: 800px;
     margin: 0 auto;
     padding: 1rem;
-    animation: slideIn 0.4s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }
 
 .feedback-content {
-    background: var(--surface);
-    border-radius: var(--radius-xl);
-    padding: 3rem 2rem;
-    box-shadow: var(--shadow-xl);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     text-align: center;
 }
 
 .feedback-content.correct {
-    border-top: 6px solid var(--success-color);
+    border-top: 4px solid #059669;
 }
 
 .feedback-content.incorrect {
-    border-top: 6px solid var(--error-color);
+    border-top: 4px solid #dc2626;
 }
 
 .feedback-icon {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .icon-correct,
@@ -43,102 +31,80 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
-    font-size: 3rem;
+    font-size: 2rem;
     font-weight: bold;
-    animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-@keyframes popIn {
-    0% {
-        transform: scale(0);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.1);
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
 }
 
 .icon-correct {
-    background-color: var(--success-light);
-    color: var(--success-color);
+    background-color: #d1fae5;
+    color: #059669;
 }
 
 .icon-incorrect {
-    background-color: var(--error-light);
-    color: var(--error-color);
+    background-color: #fee2e2;
+    color: #dc2626;
 }
 
 .feedback-content h2 {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
-.feedback-content.correct h2 {
-    color: var(--success-color);
-}
-
-.feedback-content.incorrect h2 {
-    color: var(--error-color);
-}
+.feedback-content.correct h2 { color: #059669; }
+.feedback-content.incorrect h2 { color: #dc2626; }
 
 .explanation {
-    background-color: var(--background);
-    border-left: 4px solid var(--primary-color);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
-    margin: 2rem 0;
-    text-align: left;
-}
-
-.explanation h3 {
-    color: var(--primary-color);
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-}
-
-.explanation p {
-    color: var(--text-primary);
-    line-height: 1.7;
-    font-size: 1rem;
-}
-
-.correct-answer {
-    background-color: var(--success-light);
-    border-left: 4px solid var(--success-color);
-    border-radius: var(--radius-md);
-    padding: 1.5rem;
+    background-color: #f9fafb;
+    border-left: 4px solid #2563eb;
+    border-radius: 4px;
+    padding: 1rem;
     margin: 1.5rem 0;
     text-align: left;
 }
 
-.correct-answer h3 {
-    color: var(--success-color);
-    font-size: 1.125rem;
+.explanation h3 {
+    color: #2563eb;
+    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.explanation p {
+    color: #1f2937;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.correct-answer {
+    background-color: #d1fae5;
+    border-left: 4px solid #059669;
+    border-radius: 4px;
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: left;
+}
+
+.correct-answer h3 {
+    color: #059669;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
 .correct-answer p {
-    color: var(--text-primary);
-    line-height: 1.7;
-    font-size: 1rem;
-    font-weight: 500;
+    color: #1f2937;
+    margin: 0;
 }
 
 .session-progress {
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background-color: var(--background);
-    border-radius: var(--radius-lg);
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 8px;
 }
 
 .score-summary {
@@ -149,76 +115,65 @@
 
 .score-item {
     text-align: center;
-    padding: 1rem;
-    background: var(--surface);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
+    padding: 0.75rem;
+    background: #ffffff;
+    border-radius: 4px;
 }
 
 .score-label {
     display: block;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
 .score-value {
     display: block;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
 }
 
-.score-item.correct .score-value {
-    color: var(--success-color);
-}
-
-.score-item.incorrect .score-value {
-    color: var(--error-color);
-}
-
-.score-item.total .score-value {
-    color: var(--primary-color);
-}
+.score-item.correct .score-value { color: #059669; }
+.score-item.incorrect .score-value { color: #dc2626; }
+.score-item.total .score-value { color: #2563eb; }
 
 .form-actions {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
 }
 
 .form-actions button {
-    min-width: 200px;
-    font-size: 1.125rem;
-    padding: 1rem 2rem;
+    min-width: 180px;
+    padding: 0.75rem 1.5rem;
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.form-actions button:hover {
+    background-color: #1d4ed8;
 }
 
 .no-session {
     text-align: center;
-    padding: 3rem 1rem;
+    padding: 2rem 1rem;
+}
+
+.no-session button {
+    background-color: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
 @media (max-width: 768px) {
-    .feedback-content {
-        padding: 2rem 1.5rem;
-    }
-
-    .score-summary {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-
-    .icon-correct,
-    .icon-incorrect {
-        width: 64px;
-        height: 64px;
-        font-size: 2.5rem;
-    }
-
-    .feedback-content h2 {
-        font-size: 1.5rem;
-    }
-
-    .form-actions button {
-        width: 100%;
-    }
+    .feedback-content { padding: 1.5rem; }
+    .score-summary { grid-template-columns: 1fr; }
+    .form-actions button { width: 100%; }
 }

@@ -27,7 +27,7 @@ public class StatisticsService : IStatisticsService
         {
             _logger.LogInformation("Fetching statistics for user {UserId}", userId);
 
-            var response = await _httpClient.GetAsync($"/api/userstatistics/{userId}");
+            var response = await _httpClient.GetAsync($"/api/users/{userId}/statistics");
             response.EnsureSuccessStatusCode();
 
             var statistics = await response.Content.ReadFromJsonAsync<UserStatisticsDto>();
@@ -55,7 +55,7 @@ public class StatisticsService : IStatisticsService
 
         try
         {
-            var url = $"/api/userstatistics/{userId}/subtopics";
+            var url = $"/api/users/{userId}/statistics/subtopics";
             if (!string.IsNullOrWhiteSpace(certificationId))
             {
                 url += $"?certificationId={certificationId}";
@@ -99,7 +99,7 @@ public class StatisticsService : IStatisticsService
         {
             _logger.LogInformation("Fetching session history for user {UserId}, limit {Limit}", userId, limit);
 
-            var response = await _httpClient.GetAsync($"/api/userstatistics/{userId}/sessions?limit={limit}");
+            var response = await _httpClient.GetAsync($"/api/users/{userId}/statistics/sessions?limit={limit}");
             response.EnsureSuccessStatusCode();
 
             var sessionHistory = await response.Content.ReadFromJsonAsync<SessionHistoryDto>();

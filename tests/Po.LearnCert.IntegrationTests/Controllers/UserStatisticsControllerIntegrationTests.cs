@@ -4,20 +4,22 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using System.Net;
 using Po.LearnCert.Shared.Models;
-using Po.LearnCert.Api.Entities;
-using Po.LearnCert.Api.Repositories;
+using Po.LearnCert.Api.Features.Statistics.Entities;
+using Po.LearnCert.Api.Features.Statistics.Repositories;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Po.LearnCert.IntegrationTests.Infrastructure;
 
 namespace Po.LearnCert.IntegrationTests.Controllers;
 
-public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+[Collection("Azurite collection")]
+public class UserStatisticsControllerIntegrationTests : IDisposable
 {
     private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
-    public UserStatisticsControllerIntegrationTests(WebApplicationFactory<Program> factory)
+    public UserStatisticsControllerIntegrationTests(AzuriteFixture azuriteFixture)
     {
-        _factory = factory.WithWebHostBuilder(builder =>
+        _factory = new TestWebApplicationFactoryWithAzurite<Program>(azuriteFixture).WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -29,6 +31,12 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         _client = _factory.CreateClient();
     }
 
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
+    }
+
     [Fact]
     public async Task GetUserStatistics_WithNewUser_ReturnsEmptyStatistics()
     {
@@ -36,7 +44,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         var userId = "new-user-" + Guid.NewGuid();
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -79,7 +87,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         await statisticsRepo.UpdateCertificationPerformanceAsync(certPerformance);
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -126,7 +134,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         await statisticsRepo.UpdateSubtopicPerformanceAsync(subtopic2);
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}/subtopics");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics/subtopics");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -159,7 +167,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         await statisticsRepo.UpdateSubtopicPerformanceAsync(securitySubtopic);
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}/subtopics?certificationId=AZ-900");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics/subtopics?certificationId=AZ-900");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -177,52 +185,19 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
     public async Task GetUserStatistics_WithInvalidUserId_ReturnsBadRequest(string userId)
     {
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics");
 
         // Assert
         // Note: Empty userId causes routing to fallback endpoint, not BadRequest
         // We accept OK (fallback to SPA) or BadRequest as valid responses
         Assert.True(
-            response.StatusCode == HttpStatusCode.OK || 
+            response.StatusCode == HttpStatusCode.OK ||
             response.StatusCode == HttpStatusCode.BadRequest ||
             response.StatusCode == HttpStatusCode.NotFound,
             $"Expected OK, BadRequest, or NotFound but got {response.StatusCode}");
     }
 
-    [Fact]
-    public async Task UpdateStatisticsAfterSession_WithValidParameters_ReturnsOk()
-    {
-        // Arrange
-        var userId = "test-update-user";
-        var sessionId = "session-123";
-
-        // Act
-        var response = await _client.PostAsync($"/api/userstatistics/{userId}/sessions/{sessionId}/update-stats", null);
-
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Statistics updated successfully", content);
-    }
-
-    [Theory]
-    [InlineData("", "session-123")]
-    [InlineData("user-123", "")]
-    public async Task UpdateStatisticsAfterSession_WithInvalidParameters_ReturnsBadRequest(string userId, string sessionId)
-    {
-        // Act
-        var response = await _client.PostAsync($"/api/userstatistics/{userId}/sessions/{sessionId}/update-stats", null);
-
-        // Assert
-        // Note: Empty userId/sessionId causes route mismatch, resulting in MethodNotAllowed
-        // We accept BadRequest or MethodNotAllowed as valid responses for invalid parameters
-        Assert.True(
-            response.StatusCode == HttpStatusCode.BadRequest || 
-            response.StatusCode == HttpStatusCode.MethodNotAllowed ||
-            response.StatusCode == HttpStatusCode.NotFound,
-            $"Expected BadRequest, MethodNotAllowed, or NotFound but got {response.StatusCode}");
-    }
+    
 
     [Fact]
     public async Task GetSessionHistory_WithDateRange_ReturnsFilteredSessions()
@@ -234,7 +209,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         var limit = 10;
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}/sessions?startDate={startDate}&endDate={endDate}&limit={limit}");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics/sessions?startDate={startDate}&endDate={endDate}&limit={limit}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -256,7 +231,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         var endDate = DateTime.UtcNow.AddDays(-1).ToString("yyyy-MM-dd"); // End before start
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}/sessions?startDate={startDate}&endDate={endDate}");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics/sessions?startDate={startDate}&endDate={endDate}");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -274,7 +249,7 @@ public class UserStatisticsControllerIntegrationTests : IClassFixture<WebApplica
         var userId = "test-user";
 
         // Act
-        var response = await _client.GetAsync($"/api/userstatistics/{userId}/sessions?limit={limit}");
+        var response = await _client.GetAsync($"/api/users/{userId}/statistics/sessions?limit={limit}");
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

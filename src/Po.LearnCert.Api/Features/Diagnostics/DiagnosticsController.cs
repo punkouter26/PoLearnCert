@@ -63,11 +63,11 @@ public class DiagnosticsController : ControllerBase
             var tableClient = _tableServiceClient.GetTableClient(tableName);
             var entities = new List<Dictionary<string, object?>>();
             var count = 0;
-            
+
             await foreach (var entity in tableClient.QueryAsync<TableEntity>())
             {
                 if (count >= limit) break;
-                
+
                 var dict = new Dictionary<string, object?>();
                 foreach (var prop in entity)
                 {
@@ -76,7 +76,7 @@ public class DiagnosticsController : ControllerBase
                 entities.Add(dict);
                 count++;
             }
-            
+
             return Ok(new { TableName = tableName, Entities = entities, Count = entities.Count });
         }
         catch (Exception ex)
@@ -94,7 +94,7 @@ public class DiagnosticsController : ControllerBase
             var tableClient = _tableServiceClient.GetTableClient("quizsessions");
             var sessions = new List<Dictionary<string, object?>>();
             var filter = $"PartitionKey eq '{userId}'";
-            
+
             await foreach (var entity in tableClient.QueryAsync<TableEntity>(filter))
             {
                 var dict = new Dictionary<string, object?>();
@@ -104,7 +104,7 @@ public class DiagnosticsController : ControllerBase
                 }
                 sessions.Add(dict);
             }
-            
+
             return Ok(new { UserId = userId, Sessions = sessions, Count = sessions.Count });
         }
         catch (Exception ex)

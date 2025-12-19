@@ -37,11 +37,31 @@ public class ProblemDetailsMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        _logger.LogError(exception, "An unhandled exception occurred");
-
         var problemDetails = CreateProblemDetails(context, exception);
+        var statusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
 
-        context.Response.StatusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
+        if (statusCode >= (int)HttpStatusCode.InternalServerError)
+        {
+            _logger.LogError(exception, "Unhandled exception mapped to {StatusCode}", statusCode);
+        }
+        else if (statusCode == (int)HttpStatusCode.NotFound)
+        {
+            _logger.LogInformation(
+                "Handled {ExceptionType} mapped to {StatusCode}: {Message}",
+                exception.GetType().Name,
+                statusCode,
+                exception.Message);
+        }
+        else
+        {
+            _logger.LogWarning(
+                "Handled {ExceptionType} mapped to {StatusCode}: {Message}",
+                exception.GetType().Name,
+                statusCode,
+                exception.Message);
+        }
+
+        context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/problem+json";
 
         await context.Response.WriteAsJsonAsync(problemDetails);

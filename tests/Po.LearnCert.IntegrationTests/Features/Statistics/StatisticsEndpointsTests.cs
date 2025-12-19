@@ -1,6 +1,5 @@
 using Xunit;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -9,15 +8,22 @@ using Po.LearnCert.IntegrationTests.Infrastructure;
 
 namespace Po.LearnCert.IntegrationTests.Features.Statistics;
 
-public class StatisticsEndpointsTests : IClassFixture<TestWebApplicationFactory<Program>>
+[Collection("Azurite collection")]
+public class StatisticsEndpointsTests : IDisposable
 {
     private readonly HttpClient _client;
-    private readonly TestWebApplicationFactory<Program> _factory;
+    private readonly TestWebApplicationFactoryWithAzurite<Program> _factory;
 
-    public StatisticsEndpointsTests(TestWebApplicationFactory<Program> factory)
+    public StatisticsEndpointsTests(AzuriteFixture azuriteFixture)
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        _factory = new TestWebApplicationFactoryWithAzurite<Program>(azuriteFixture);
+        _client = _factory.CreateClient();
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
     }
 
     [Fact]

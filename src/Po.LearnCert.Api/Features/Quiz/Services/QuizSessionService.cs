@@ -1,7 +1,6 @@
 using Po.LearnCert.Api.Features.Certifications.Infrastructure;
-using Po.LearnCert.Api.Features.Leaderboards.Services;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
-using Po.LearnCert.Api.Services;
+using Po.LearnCert.Api.Features.Quiz.Services.Handlers;
 using Po.LearnCert.Shared.Contracts;
 using Po.LearnCert.Shared.Models;
 
@@ -15,23 +14,23 @@ public class QuizSessionService : IQuizSessionService
     private readonly IQuizSessionRepository _sessionRepository;
     private readonly IQuestionRepository _questionRepository;
     private readonly ICertificationRepository _certificationRepository;
-    private readonly IUserStatisticsService _statisticsService;
-    private readonly LeaderboardService _leaderboardService;
+    private readonly IAnswerSubmissionHandler _answerHandler;
+    private readonly IQuizCompletionHandler _completionHandler;
     private readonly ILogger<QuizSessionService> _logger;
 
     public QuizSessionService(
         IQuizSessionRepository sessionRepository,
         IQuestionRepository questionRepository,
         ICertificationRepository certificationRepository,
-        IUserStatisticsService statisticsService,
-        LeaderboardService leaderboardService,
+        IAnswerSubmissionHandler answerHandler,
+        IQuizCompletionHandler completionHandler,
         ILogger<QuizSessionService> logger)
     {
         _sessionRepository = sessionRepository;
         _questionRepository = questionRepository;
         _certificationRepository = certificationRepository;
-        _statisticsService = statisticsService;
-        _leaderboardService = leaderboardService;
+        _answerHandler = answerHandler;
+        _completionHandler = completionHandler;
         _logger = logger;
     }
 
@@ -135,126 +134,29 @@ public class QuizSessionService : IQuizSessionService
             "User {UserId} submitting answer for session {SessionId}, question {QuestionId}",
             userId, request.SessionId, request.QuestionId);
 
-        // Get session
-        var session = await _sessionRepository.GetSessionByIdAsync(userId, request.SessionId, cancellationToken);
-        if (session == null)
+        // Validate the answer submission
+        var validation = await _answerHandler.ValidateAsync(userId, request, cancellationToken);
+        if (!validation.IsValid)
         {
-            throw new InvalidOperationException($"Session {request.SessionId} not found for user {userId}.");
+            throw new InvalidOperationException(validation.ErrorMessage);
         }
 
-        if (session.IsCompleted)
-        {
-            throw new InvalidOperationException($"Session {request.SessionId} is already completed.");
-        }
-
-        // Get question and choices
-        var question = await _questionRepository.GetQuestionByIdAsync(
-            session.CertificationId, // Use certification ID as partition key
-            request.QuestionId,
-            cancellationToken);
-
-        if (question == null)
-        {
-            throw new InvalidOperationException($"Question {request.QuestionId} not found.");
-        }
-
-        var choices = await _questionRepository.GetAnswerChoicesAsync(request.QuestionId, cancellationToken);
-        var selectedChoice = choices.FirstOrDefault(c => c.RowKey == request.SelectedChoiceId);
-        var correctChoice = choices.FirstOrDefault(c => c.IsCorrect);
-
-        if (selectedChoice == null)
-        {
-            throw new InvalidOperationException($"Choice {request.SelectedChoiceId} not found.");
-        }
-
-        if (correctChoice == null)
-        {
-            throw new InvalidOperationException($"No correct answer found for question {request.QuestionId}.");
-        }
+        var session = validation.Session!;
+        var question = validation.Question!;
+        var selectedChoice = validation.SelectedChoice!;
+        var correctChoice = validation.CorrectChoice!;
 
         bool isCorrect = selectedChoice.IsCorrect;
 
-        // Record answer
-        var answerEntity = new SessionAnswerEntity
-        {
-            PartitionKey = request.SessionId,
-            RowKey = request.QuestionId,
-            SessionId = request.SessionId,
-            QuestionId = request.QuestionId,
-            SelectedChoiceId = request.SelectedChoiceId,
-            IsCorrect = isCorrect,
-            AnsweredAt = DateTimeOffset.UtcNow,
-            Timestamp = DateTimeOffset.UtcNow
-        };
+        // Record the answer and update session
+        var (_, updatedSession) = await _answerHandler.RecordAnswerAsync(
+            session, request, isCorrect, cancellationToken);
 
-        await _sessionRepository.RecordAnswerAsync(answerEntity, cancellationToken);
-
-        // Update session progress
-        if (isCorrect)
+        // Process completion if session is done
+        if (updatedSession.IsCompleted)
         {
-            session.CorrectAnswers++;
+            await _completionHandler.ProcessCompletionAsync(userId, updatedSession, cancellationToken);
         }
-        else
-        {
-            session.IncorrectAnswers++;
-        }
-
-        session.CurrentQuestionIndex++;
-
-        // Check if session is complete
-        var questionIds = session.QuestionIds.Split(',');
-        if (session.CurrentQuestionIndex >= questionIds.Length)
-        {
-            session.IsCompleted = true;
-            session.CompletedAt = DateTimeOffset.UtcNow;
-
-            // Calculate final score
-            int totalQuestions = session.CorrectAnswers + session.IncorrectAnswers;
-            int scorePercentage = totalQuestions > 0
-                ? (int)Math.Round((double)session.CorrectAnswers / totalQuestions * 100)
-                : 0;
-
-            // Update user statistics
-            try
-            {
-                await _statisticsService.UpdateStatisticsAfterSessionAsync(userId, request.SessionId);
-                _logger.LogInformation("Statistics updated for completed session {SessionId}", request.SessionId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to update statistics for session {SessionId}", request.SessionId);
-                // Don't fail the request if statistics update fails
-            }
-
-            // Update leaderboards
-            try
-            {
-                // Get user information - in production this would come from the auth context
-                var username = userId; // TODO: Get actual username from user service/auth context
-                
-                await _leaderboardService.UpdateLeaderboardAsync(
-                    userId,
-                    username,
-                    session.CertificationId,
-                    scorePercentage,
-                    session.CompletedAt.Value.DateTime);
-
-                _logger.LogInformation(
-                    "Leaderboard updated for user {UserId} on certification {CertId} with score {Score}",
-                    userId, session.CertificationId, scorePercentage);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to update leaderboard for session {SessionId}", request.SessionId);
-                // Don't fail the request if leaderboard update fails
-            }
-        }
-
-        await _sessionRepository.UpdateSessionAsync(session, cancellationToken);
-
-        _logger.LogInformation(
-            "Answer recorded for session {SessionId}, question {QuestionId}, correct: {IsCorrect}",
-            request.SessionId, request.QuestionId, isCorrect);
 
         // Return response
         return new SubmitAnswerResponse
@@ -262,10 +164,10 @@ public class QuizSessionService : IQuizSessionService
             IsCorrect = isCorrect,
             CorrectChoiceId = correctChoice.RowKey,
             Explanation = question.Explanation,
-            CorrectAnswers = session.CorrectAnswers,
-            IncorrectAnswers = session.IncorrectAnswers,
-            CurrentQuestionIndex = session.CurrentQuestionIndex,
-            IsSessionComplete = session.IsCompleted
+            CorrectAnswers = updatedSession.CorrectAnswers,
+            IncorrectAnswers = updatedSession.IncorrectAnswers,
+            CurrentQuestionIndex = updatedSession.CurrentQuestionIndex,
+            IsSessionComplete = updatedSession.IsCompleted
         };
     }
 
@@ -282,7 +184,7 @@ public class QuizSessionService : IQuizSessionService
         var session = await _sessionRepository.GetSessionByIdAsync(userId, sessionId, cancellationToken);
         if (session == null)
         {
-            throw new InvalidOperationException($"Session {sessionId} not found for user {userId}.");
+            throw new KeyNotFoundException($"Session {sessionId} not found for user {userId}.");
         }
 
         if (!session.IsCompleted)
@@ -341,7 +243,7 @@ public class QuizSessionService : IQuizSessionService
         var session = await _sessionRepository.GetSessionByIdAsync(userId, sessionId, cancellationToken);
         if (session == null)
         {
-            throw new InvalidOperationException($"Session {sessionId} not found for user {userId}.");
+            throw new KeyNotFoundException($"Session {sessionId} not found for user {userId}.");
         }
 
         return new QuizSessionDto

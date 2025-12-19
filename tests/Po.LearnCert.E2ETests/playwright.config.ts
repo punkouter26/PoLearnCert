@@ -44,11 +44,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
 
-    /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
+    /* Mobile Chrome disabled - mobile tests are included in individual spec files
+       with setViewportSize() for better test control and faster execution */
+    // {
+    //   name: 'Mobile Chrome',
+    //   use: { ...devices['Pixel 5'] },
+    // },
 
     /* Other browsers disabled for faster test execution */
     // {

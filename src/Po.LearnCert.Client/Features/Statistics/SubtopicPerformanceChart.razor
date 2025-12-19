@@ -1,82 +1,90 @@
 @using Po.LearnCert.Shared.Models
 @inject ILogger<SubtopicPerformanceChart> Logger
 
-<div class="subtopic-performance-chart">
-    <h3>Subtopic Performance</h3>
+<RadzenCard class="rz-mt-4">
+    <RadzenText TextStyle="TextStyle.H6" class="rz-mb-4">📚 Subtopic Performance</RadzenText>
     
     @if (Performance == null || !Performance.Any())
     {
-        <div class="no-data">
-            <p>No subtopic performance data available yet.</p>
-            <p class="hint">Complete some quiz sessions to see your performance breakdown by topic.</p>
-        </div>
+        <RadzenStack AlignItems="AlignItems.Center" Gap="1rem" class="rz-py-6">
+            <RadzenText Text="📖" Style="font-size: 2.5rem;" />
+            <RadzenText TextStyle="TextStyle.Body1" Text="No subtopic performance data available yet" />
+            <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary" Text="Complete some quiz sessions to see your performance breakdown by topic" />
+        </RadzenStack>
     }
     else
     {
-        <div class="performance-grid">
-            @foreach (var subtopic in Performance.OrderByDescending(p => p.Accuracy))
-            {
-                <div class="performance-item @GetPerformanceLevelClass(subtopic.PerformanceLevel)">
-                    <div class="subtopic-header">
-                        <h4>@subtopic.SubtopicName</h4>
-                        <span class="cert-badge">@subtopic.CertificationId.ToUpper()</span>
-                    </div>
-                    
-                    <div class="performance-stats">
-                        <div class="stat">
-                            <span class="stat-label">Accuracy</span>
-                            <span class="stat-value">@subtopic.Accuracy.ToString("F1")%</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">Attempts</span>
-                            <span class="stat-value">@subtopic.QuestionsAnswered</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">Correct</span>
-                            <span class="stat-value">@subtopic.CorrectAnswers</span>
-                        </div>
-                    </div>
-                    
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: @subtopic.Accuracy%"></div>
-                    </div>
-                    
-                    <div class="performance-level">
-                        <span class="level-badge @GetPerformanceLevelClass(subtopic.PerformanceLevel)">
-                            @GetPerformanceLevelIcon(subtopic.PerformanceLevel) @subtopic.PerformanceLevel
-                        </span>
-                    </div>
-                </div>
-            }
-        </div>
+        <RadzenDataGrid Data="@Performance.OrderByDescending(p => p.Accuracy)" 
+                       TItem="SubtopicPerformanceDto"
+                       AllowSorting="true"
+                       Density="Density.Compact"
+                       class="rz-datatable-striped">
+            <Columns>
+                <RadzenDataGridColumn TItem="SubtopicPerformanceDto" Property="SubtopicName" Title="Subtopic" MinWidth="200px">
+                    <Template Context="item">
+                        <RadzenStack Gap="0.25rem">
+                            <RadzenText Text="@item.SubtopicName" Style="font-weight: 500;" />
+                            <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="@item.CertificationId.ToUpper()" IsPill="true" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                
+                <RadzenDataGridColumn TItem="SubtopicPerformanceDto" Property="Accuracy" Title="Accuracy" Width="180px">
+                    <Template Context="item">
+                        <RadzenStack Gap="0.25rem">
+                            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+                                <RadzenText Text="@($"{item.Accuracy:F1}%")" Style="font-weight: 600;" />
+                                <RadzenBadge BadgeStyle="@GetPerformanceBadgeStyle(item.PerformanceLevel)" 
+                                            Text="@GetPerformanceLevelText(item.PerformanceLevel)" 
+                                            IsPill="true" />
+                            </RadzenStack>
+                            <RadzenProgressBar Value="@((double)item.Accuracy)" Max="100" ShowValue="false" 
+                                              Style="height: 6px;"
+                                              ProgressBarStyle="@GetProgressBarStyle(item.PerformanceLevel)" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                
+                <RadzenDataGridColumn TItem="SubtopicPerformanceDto" Title="Score" Width="100px" TextAlign="TextAlign.Center">
+                    <Template Context="item">
+                        <RadzenText Text="@($"{item.CorrectAnswers}/{item.QuestionsAnswered}")" />
+                    </Template>
+                </RadzenDataGridColumn>
+                
+                <RadzenDataGridColumn TItem="SubtopicPerformanceDto" Property="PracticeCount" Title="Sessions" Width="90px" TextAlign="TextAlign.Center" />
+            </Columns>
+        </RadzenDataGrid>
     }
-</div>
+</RadzenCard>
 
 @code {
     [Parameter]
     public List<SubtopicPerformanceDto>? Performance { get; set; }
 
-    private string GetPerformanceLevelClass(PerformanceLevel level)
+    private BadgeStyle GetPerformanceBadgeStyle(PerformanceLevel level) => level switch
     {
-        return level switch
-        {
-            PerformanceLevel.Excellent => "level-excellent",
-            PerformanceLevel.Good => "level-strong",
-            PerformanceLevel.Basic => "level-needs-practice",
-            PerformanceLevel.NeedsImprovement => "level-weak",
-            _ => "level-unknown"
-        };
-    }
+        PerformanceLevel.Excellent => BadgeStyle.Success,
+        PerformanceLevel.Good => BadgeStyle.Info,
+        PerformanceLevel.Basic => BadgeStyle.Warning,
+        PerformanceLevel.NeedsImprovement => BadgeStyle.Danger,
+        _ => BadgeStyle.Light
+    };
+    
+    private ProgressBarStyle GetProgressBarStyle(PerformanceLevel level) => level switch
+    {
+        PerformanceLevel.Excellent => ProgressBarStyle.Success,
+        PerformanceLevel.Good => ProgressBarStyle.Info,
+        PerformanceLevel.Basic => ProgressBarStyle.Warning,
+        PerformanceLevel.NeedsImprovement => ProgressBarStyle.Danger,
+        _ => ProgressBarStyle.Primary
+    };
 
-    private string GetPerformanceLevelIcon(PerformanceLevel level)
+    private string GetPerformanceLevelText(PerformanceLevel level) => level switch
     {
-        return level switch
-        {
-            PerformanceLevel.Excellent => "🌟",
-            PerformanceLevel.Good => "✅",
-            PerformanceLevel.Basic => "⚠️",
-            PerformanceLevel.NeedsImprovement => "❌",
-            _ => "❓"
-        };
-    }
+        PerformanceLevel.Excellent => "🌟 Excellent",
+        PerformanceLevel.Good => "✅ Good",
+        PerformanceLevel.Basic => "⚠️ Basic",
+        PerformanceLevel.NeedsImprovement => "❌ Needs Work",
+        _ => "❓"
+    };
 }
