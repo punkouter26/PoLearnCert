@@ -49,12 +49,12 @@ try
     builder.Services.AddSwaggerGen(options =>
     {
         // Use Microsoft.OpenApi types (package provides these). This keeps metadata simple.
-        options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
+        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
         {
             Title = "PoLearnCert API",
             Version = "v1",
             Description = "API for PoLearnCert Certification Quiz Platform",
-            Contact = new Microsoft.OpenApi.OpenApiContact
+            Contact = new Microsoft.OpenApi.Models.OpenApiContact
             {
                 Name = "PoLearnCert Team"
             }
@@ -62,7 +62,7 @@ try
     });
 
     // Configure Azure Table Storage via Aspire
-    builder.AddAzureTableServiceClient("tables");
+    builder.AddAzureTableClient("tables");
 
     // Configure ASP.NET Core Identity
     builder.Services.AddScoped<IUserStore<UserEntity>, TableUserStore>();

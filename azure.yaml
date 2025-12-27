@@ -1,0 +1,6 @@
+name: PoLearnCert
+services:
+  app:
+    project: src/Po.LearnCert.AppHost/Po.LearnCert.AppHost.csproj
+    host: containerapp
+    language: dotnet

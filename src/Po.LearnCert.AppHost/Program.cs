@@ -5,6 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var storage = builder.AddAzureStorage("storage")
     .RunAsEmulator(azurite =>
     {
+        azurite.WithImage("mcr.microsoft.com/azure-storage/azurite");
         azurite.WithLifetime(ContainerLifetime.Persistent);
     });
 
