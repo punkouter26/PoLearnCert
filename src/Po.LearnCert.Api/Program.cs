@@ -15,8 +15,12 @@ using Po.LearnCert.Api.Infrastructure;
 using Azure.Data.Tables;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Po.LearnCert.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Aspire ServiceDefaults for observability and resilience
+builder.AddServiceDefaults();
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -44,22 +48,21 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
-        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        // Use Microsoft.OpenApi types (package provides these). This keeps metadata simple.
+        options.SwaggerDoc("v1", new Microsoft.OpenApi.OpenApiInfo
         {
             Title = "PoLearnCert API",
             Version = "v1",
             Description = "API for PoLearnCert Certification Quiz Platform",
-            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            Contact = new Microsoft.OpenApi.OpenApiContact
             {
                 Name = "PoLearnCert Team"
             }
         });
     });
 
-    // Configure Azure Table Storage
-    var azureTableConnectionString = builder.Configuration["AzureTableStorage:ConnectionString"]
-        ?? builder.Configuration.GetConnectionString("AzureTableStorage");
-    builder.Services.AddSingleton(new TableServiceClient(azureTableConnectionString));
+    // Configure Azure Table Storage via Aspire
+    builder.AddAzureTableServiceClient("tables");
 
     // Configure ASP.NET Core Identity
     builder.Services.AddScoped<IUserStore<UserEntity>, TableUserStore>();
@@ -211,6 +214,10 @@ try
     .WithName("GetWeatherForecast");
 
     Log.Information("PoLearnCert API started successfully");
+
+    // Map Aspire default endpoints (metrics, traces, etc.)
+    app.MapDefaultEndpoints();
+
     app.Run();
 }
 catch (Exception ex)
