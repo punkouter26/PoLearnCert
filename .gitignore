@@ -9,7 +9,6 @@ obj/
 *.pdb
 *.userprefs
 .vs/
-.vscode/
 packages/
 *.nupkg
 *.snupkg
