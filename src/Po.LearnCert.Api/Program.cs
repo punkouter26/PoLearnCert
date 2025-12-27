@@ -13,6 +13,7 @@ using Po.LearnCert.Api.Features.Statistics.Services;
 using Po.LearnCert.Api.Health;
 using Po.LearnCert.Api.Infrastructure;
 using Azure.Data.Tables;
+using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Po.LearnCert.ServiceDefaults;
@@ -49,12 +50,12 @@ try
     builder.Services.AddSwaggerGen(options =>
     {
         // Use Microsoft.OpenApi types (package provides these). This keeps metadata simple.
-        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        options.SwaggerDoc("v1", new OpenApiInfo
         {
             Title = "PoLearnCert API",
             Version = "v1",
             Description = "API for PoLearnCert Certification Quiz Platform",
-            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            Contact = new OpenApiContact
             {
                 Name = "PoLearnCert Team"
             }
@@ -62,7 +63,7 @@ try
     });
 
     // Configure Azure Table Storage via Aspire
-    builder.AddAzureTableClient("tables");
+    builder.AddAzureTableServiceClient("tables");
 
     // Configure ASP.NET Core Identity
     builder.Services.AddScoped<IUserStore<UserEntity>, TableUserStore>();

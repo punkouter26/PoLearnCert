@@ -8,7 +8,11 @@
             "applicationUrl": "https://localhost:17000;http://localhost:17001",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "DOTNET_ENVIRONMENT": "Development"
+                "DOTNET_ENVIRONMENT": "Development",
+                "DOTNET_ASPIRE_CLI_PATH": "C:\\Users\\punko\\.nuget\\packages\\aspire.hosting.orchestration.win-arm64\\13.1.0\\tools\\dcp.exe",
+                "DOTNET_ASPIRE_DASHBOARD_PATH": "C:\\Users\\punko\\.nuget\\packages\\aspire.dashboard.sdk.win-arm64\\13.1.0\\tools",
+                "ASPIRE_DASHBOARD_OTLP_HTTP_ENDPOINT_URL": "http://localhost:18888",
+                "ASPIRE_ALLOW_UNSECURED_TRANSPORT": "true"
             }
         }
     }
