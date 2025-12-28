@@ -1,6 +1,9 @@
 @page "/admin"
 @using Po.LearnCert.Client.Features.QuestionGeneration
+@using Po.LearnCert.Client.Features.Certifications.Services
+@using Po.LearnCert.Shared.Models
 @inject IQuestionGenerationService GenerationService
+@inject ICertificationService CertificationService
 @inject ILogger<Admin> Logger
 
 <PageTitle>Admin - Question Generation</PageTitle>
@@ -17,18 +20,30 @@
 
             <RadzenStack Gap="0.5rem">
                 <RadzenText TextStyle="TextStyle.Caption" Text="Certification" />
-                <RadzenDropDown @bind-Value="@selectedCertification"
+                <RadzenDropDown @bind-Value="@selectedCertificationId"
                                Data="@certifications"
                                TextProperty="Name"
                                ValueProperty="Id"
                                Disabled="@isGenerating"
+                               Change="@OnCertificationChanged"
+                               Placeholder="Select a certification"
                                Style="width: 100%; max-width: 400px;" />
             </RadzenStack>
 
             <RadzenStack Gap="0.5rem">
-                <RadzenText TextStyle="TextStyle.Caption" Text="Questions per Subtopic" />
-                <RadzenNumeric @bind-Value="@questionsPerSubtopic"
-                              Min="1" Max="100"
+                <RadzenText TextStyle="TextStyle.Caption" Text="Category (Subtopic)" />
+                <RadzenDropDown @bind-Value="@selectedSubtopic"
+                               Data="@subtopics"
+                               TextProperty="Name"
+                               Disabled="@(isGenerating || subtopics.Count == 0)"
+                               Placeholder="@(string.IsNullOrEmpty(selectedCertificationId) ? "Select a certification first" : "Select a category")"
+                               Style="width: 100%; max-width: 400px;" />
+            </RadzenStack>
+
+            <RadzenStack Gap="0.5rem">
+                <RadzenText TextStyle="TextStyle.Caption" Text="Number of Questions" />
+                <RadzenNumeric @bind-Value="@numberOfQuestions"
+                              Min="1" Max="50"
                               Disabled="@isGenerating"
                               Style="width: 150px;" />
             </RadzenStack>
@@ -37,13 +52,13 @@
                 <RadzenButton Text="Generate Questions"
                              Icon="auto_awesome"
                              Click="@GenerateQuestions"
-                             Disabled="@isGenerating"
+                             Disabled="@(isGenerating || selectedSubtopic == null)"
                              IsBusy="@isGenerating" />
 
                 @if (isGenerating)
                 {
                     <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">
-                        Generating questions... This may take several minutes.
+                        Generating questions... This may take a moment.
                     </RadzenText>
                 }
             </RadzenStack>
@@ -117,20 +132,55 @@
 </RadzenStack>
 
 @code {
-    private string selectedCertification = "AZ900";
-    private int questionsPerSubtopic = 5;
+    private string? selectedCertificationId;
+    private SubtopicDto? selectedSubtopic;
+    private int numberOfQuestions = 5;
     private bool isGenerating = false;
     private GenerationResultDto? result;
     private string? errorMessage;
 
-    private List<CertOption> certifications = new()
+    private List<CertificationDto> certifications = new();
+    private List<SubtopicDto> subtopics = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        new("AZ900", "Microsoft Azure Fundamentals (AZ-900)"),
-        new("SECPLUS", "CompTIA Security+ (SY0-701)")
-    };
+        try
+        {
+            certifications = await CertificationService.GetAllCertificationsAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load certifications");
+            errorMessage = "Failed to load certifications. Please refresh the page.";
+        }
+    }
+
+    private async Task OnCertificationChanged()
+    {
+        selectedSubtopic = null;
+        subtopics.Clear();
+        result = null;
+        errorMessage = null;
+
+        if (string.IsNullOrEmpty(selectedCertificationId))
+            return;
+
+        try
+        {
+            subtopics = await CertificationService.GetSubtopicsAsync(selectedCertificationId);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to load subtopics for {CertificationId}", selectedCertificationId);
+            errorMessage = "Failed to load categories. Please try again.";
+        }
+    }
 
     private async Task GenerateQuestions()
     {
+        if (selectedSubtopic == null || string.IsNullOrEmpty(selectedCertificationId))
+            return;
+
         isGenerating = true;
         result = null;
         errorMessage = null;
@@ -138,11 +188,14 @@
 
         try
         {
-            result = await GenerationService.GenerateForCertificationAsync(
-                selectedCertification,
-                questionsPerSubtopic);
+            result = await GenerationService.GenerateForSubtopicAsync(
+                selectedCertificationId,
+                selectedSubtopic.Id,
+                selectedSubtopic.Name,
+                numberOfQuestions);
 
-            Logger.LogInformation("Generated {Count} questions", result.TotalGenerated);
+            Logger.LogInformation("Generated {Count} questions for {Subtopic}",
+                result.TotalGenerated, selectedSubtopic.Name);
         }
         catch (Exception ex)
         {
@@ -165,6 +218,4 @@
         }
         return $"{timeSpan.Seconds}s";
     }
-
-    private record CertOption(string Id, string Name);
 }
