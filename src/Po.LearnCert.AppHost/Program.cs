@@ -5,13 +5,14 @@ var builder = DistributedApplication.CreateBuilder(args);
 var storage = builder.AddAzureStorage("storage")
     .RunAsEmulator(azurite =>
     {
-        azurite.WithImage("mcr.microsoft.com/azure-storage/azurite");
+        // Use short image name so Aspire prefixes the registry and avoids accidental double-prefixing
+        azurite.WithImage("azure-storage/azurite:latest");
         azurite.WithLifetime(ContainerLifetime.Persistent);
     });
 
 var tables = storage.AddTables("tables");
 
-var api = builder.AddProject("api", "../Po.LearnCert.Api/Po.LearnCert.Api.csproj")
+var api = builder.AddProject<Projects.Po_LearnCert_Api>("api")
     .WithReference(tables)
     .WithExternalHttpEndpoints()
     .WaitFor(tables)
