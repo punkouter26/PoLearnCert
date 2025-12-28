@@ -4,8 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Json;
 using System.Net;
 using Po.LearnCert.Shared.Models;
-using Po.LearnCert.Api.Features.Statistics.Entities;
-using Po.LearnCert.Api.Features.Statistics.Repositories;
+using Po.LearnCert.Api.Features.Statistics;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Po.LearnCert.IntegrationTests.Infrastructure;
 

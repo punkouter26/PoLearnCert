@@ -2,7 +2,6 @@ using Xunit;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Po.LearnCert.Api.Features.Statistics;
-using Po.LearnCert.Api.Features.Statistics.Services;
 using Po.LearnCert.Shared.Models;
 
 namespace Po.LearnCert.UnitTests.Controllers;

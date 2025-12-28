@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Po.LearnCert.Api.Features.Authentication.Infrastructure;
 using Po.LearnCert.Api.Features.Leaderboards.Services;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
-using Po.LearnCert.Api.Features.Statistics.Services;
+using Po.LearnCert.Api.Features.Statistics;
 
 namespace Po.LearnCert.Api.Features.Quiz.Services.Handlers;
 

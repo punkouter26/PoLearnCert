@@ -1,10 +1,8 @@
-using Po.LearnCert.Api.Features.Statistics.Entities;
-using Po.LearnCert.Api.Features.Statistics.Repositories;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
 using Po.LearnCert.Api.Features.Certifications.Infrastructure;
 using Po.LearnCert.Shared.Models;
 
-namespace Po.LearnCert.Api.Features.Statistics.Services;
+namespace Po.LearnCert.Api.Features.Statistics;
 
 /// <summary>
 /// Service implementation for user statistics operations.

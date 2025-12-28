@@ -1,6 +1,5 @@
-using Po.LearnCert.Api.Features.Statistics.Entities;
 
-namespace Po.LearnCert.Api.Features.Statistics.Repositories;
+namespace Po.LearnCert.Api.Features.Statistics;
 
 /// <summary>
 /// Repository interface for user statistics operations.

@@ -1,6 +1,6 @@
 using Po.LearnCert.Shared.Models;
 
-namespace Po.LearnCert.Api.Features.Statistics.Services;
+namespace Po.LearnCert.Api.Features.Statistics;
 
 /// <summary>
 /// Service interface for user statistics operations.

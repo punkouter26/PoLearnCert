@@ -1,6 +1,6 @@
 using Azure.Data.Tables;
 
-namespace Po.LearnCert.Api.Features.Statistics.Entities;
+namespace Po.LearnCert.Api.Features.Statistics;
 
 /// <summary>
 /// Entity for tracking user's overall performance statistics.

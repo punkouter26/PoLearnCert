@@ -13,7 +13,6 @@
         <label for="period-select">Time Period:</label>
         <select id="period-select" @bind="selectedTimePeriod" @bind:after="OnFilterChange" disabled="@IsLoading">
             <option value="AllTime">All Time</option>
-            <option value="Monthly">This Month</option>
             <option value="Weekly">This Week</option>
         </select>
     </div>

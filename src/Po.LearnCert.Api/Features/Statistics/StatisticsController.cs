@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Po.LearnCert.Api.Features.Statistics.Services;
 using Po.LearnCert.Shared.Models;
 
 namespace Po.LearnCert.Api.Features.Statistics;

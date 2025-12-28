@@ -1,7 +1,6 @@
 using Azure.Data.Tables;
-using Po.LearnCert.Api.Features.Statistics.Entities;
 
-namespace Po.LearnCert.Api.Features.Statistics.Repositories;
+namespace Po.LearnCert.Api.Features.Statistics;
 
 /// <summary>
 /// Azure Table Storage implementation for user statistics repository.
