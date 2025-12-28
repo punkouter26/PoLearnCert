@@ -1,6 +1,6 @@
-# Build stage - Use .NET 9 SDK (avoids MSBuild GetTargetFrameworkVersion bug in SDK 10.0.101)
-# The net10.0 target will still be built correctly via forward compatibility
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:9.0-noble-amd64 AS build
+# Build stage - Use .NET 10 SDK from nightly (preview) until GA SDK is available
+# Note: sdk:10.0 nightly supports building net10.0 targets
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/nightly/sdk:10.0-noble-amd64 AS build
 WORKDIR /src
 
 # Copy solution and project files
