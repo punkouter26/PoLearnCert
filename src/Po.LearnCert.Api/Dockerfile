@@ -3,6 +3,9 @@
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/nightly/sdk:10.0-noble-amd64 AS build
 WORKDIR /src
 
+# Install Python (required for emscripten/WASM native compilation)
+RUN apt-get update && apt-get install -y python3 && ln -s /usr/bin/python3 /usr/bin/python && rm -rf /var/lib/apt/lists/*
+
 # Install wasm-tools workload (required for Blazor WASM publish)
 RUN dotnet workload install wasm-tools
 
