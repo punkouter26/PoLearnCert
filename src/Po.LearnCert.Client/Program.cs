@@ -7,6 +7,7 @@ using Po.LearnCert.Client.Features.Quiz.Services;
 using Po.LearnCert.Client.Features.Certifications.Services;
 using Po.LearnCert.Client.Features.Statistics.Services;
 using Po.LearnCert.Client.Features.Leaderboards.Services;
+using Po.LearnCert.Client.Features.QuestionGeneration;
 using Po.LearnCert.Client.Features.Authentication;
 using Po.LearnCert.Client.Features.Authentication.Services;
 using Radzen;
@@ -38,6 +39,7 @@ builder.Services.AddScoped<IQuizSessionService, QuizSessionService>();
 builder.Services.AddScoped<ICertificationService, CertificationService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 builder.Services.AddScoped<ILeaderboardService, LeaderboardService>();
+builder.Services.AddScoped<IQuestionGenerationService, QuestionGenerationService>();
 
 // Register state management
 builder.Services.AddScoped<QuizSessionState>();

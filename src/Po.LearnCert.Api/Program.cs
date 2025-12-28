@@ -10,9 +10,12 @@ using Po.LearnCert.Api.Features.Leaderboards.Infrastructure;
 using Po.LearnCert.Api.Features.Leaderboards.Services;
 using Po.LearnCert.Api.Features.Statistics.Repositories;
 using Po.LearnCert.Api.Features.Statistics.Services;
+using Po.LearnCert.Api.Features.QuestionGeneration;
 using Po.LearnCert.Api.Health;
 using Po.LearnCert.Api.Infrastructure;
+using Azure.AI.OpenAI;
 using Azure.Data.Tables;
+using Azure.Identity;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -121,6 +124,20 @@ try
     builder.Services.AddScoped<LeaderboardService>();
     builder.Services.AddScoped<Po.LearnCert.Api.Features.Authentication.Services.AuthenticationService>();
     builder.Services.AddScoped<DataSeeder>();
+
+    // Configure Azure OpenAI for question generation
+    var openAiEndpoint = builder.Configuration["AzureOpenAI:Endpoint"];
+    if (!string.IsNullOrEmpty(openAiEndpoint))
+    {
+        builder.Services.AddSingleton(sp =>
+            new AzureOpenAIClient(new Uri(openAiEndpoint), new DefaultAzureCredential()));
+        builder.Services.AddScoped<IQuestionGenerationService, QuestionGenerationService>();
+        Log.Information("Azure OpenAI configured for question generation");
+    }
+    else
+    {
+        Log.Warning("Azure OpenAI not configured - question generation will not be available");
+    }
 
     // Configure Health Checks
     builder.Services.AddHealthChecks()

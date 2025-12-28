@@ -1,0 +1,170 @@
+@page "/admin"
+@using Po.LearnCert.Client.Features.QuestionGeneration
+@inject IQuestionGenerationService GenerationService
+@inject ILogger<Admin> Logger
+
+<PageTitle>Admin - Question Generation</PageTitle>
+
+<RadzenStack Gap="1.5rem">
+    <RadzenText TextStyle="TextStyle.H4" Text="Question Generation" Style="margin: 0;" />
+    <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">
+        Generate AI-powered certification exam questions using Azure OpenAI.
+    </RadzenText>
+
+    <RadzenCard>
+        <RadzenStack Gap="1rem">
+            <RadzenText TextStyle="TextStyle.H6" Text="Generate Questions" Style="margin: 0;" />
+
+            <RadzenStack Gap="0.5rem">
+                <RadzenText TextStyle="TextStyle.Caption" Text="Certification" />
+                <RadzenDropDown @bind-Value="@selectedCertification"
+                               Data="@certifications"
+                               TextProperty="Name"
+                               ValueProperty="Id"
+                               Disabled="@isGenerating"
+                               Style="width: 100%; max-width: 400px;" />
+            </RadzenStack>
+
+            <RadzenStack Gap="0.5rem">
+                <RadzenText TextStyle="TextStyle.Caption" Text="Questions per Subtopic" />
+                <RadzenNumeric @bind-Value="@questionsPerSubtopic"
+                              Min="1" Max="100"
+                              Disabled="@isGenerating"
+                              Style="width: 150px;" />
+            </RadzenStack>
+
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="1rem" AlignItems="AlignItems.Center">
+                <RadzenButton Text="Generate Questions"
+                             Icon="auto_awesome"
+                             Click="@GenerateQuestions"
+                             Disabled="@isGenerating"
+                             IsBusy="@isGenerating" />
+
+                @if (isGenerating)
+                {
+                    <RadzenText TextStyle="TextStyle.Body2" class="rz-color-secondary">
+                        Generating questions... This may take several minutes.
+                    </RadzenText>
+                }
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenCard>
+
+    @if (result != null)
+    {
+        <RadzenCard>
+            <RadzenStack Gap="1rem">
+                <RadzenText TextStyle="TextStyle.H6" Style="margin: 0;">
+                    @if (result.TotalFailed == 0)
+                    {
+                        <RadzenIcon Icon="check_circle" Style="color: var(--rz-success);" />
+                        <span>Generation Complete</span>
+                    }
+                    else
+                    {
+                        <RadzenIcon Icon="warning" Style="color: var(--rz-warning);" />
+                        <span>Generation Complete with Errors</span>
+                    }
+                </RadzenText>
+
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="2rem" Wrap="FlexWrap.Wrap">
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Caption" Text="Generated" />
+                        <RadzenText TextStyle="TextStyle.H5" Style="color: var(--rz-success);">
+                            @result.TotalGenerated
+                        </RadzenText>
+                    </RadzenStack>
+
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Caption" Text="Failed" />
+                        <RadzenText TextStyle="TextStyle.H5" Style="color: var(--rz-danger);">
+                            @result.TotalFailed
+                        </RadzenText>
+                    </RadzenStack>
+
+                    <RadzenStack Gap="0.25rem">
+                        <RadzenText TextStyle="TextStyle.Caption" Text="Duration" />
+                        <RadzenText TextStyle="TextStyle.H5">
+                            @FormatDuration(result.DurationSeconds)
+                        </RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+
+                @if (result.Errors.Any())
+                {
+                    <RadzenStack Gap="0.5rem">
+                        <RadzenText TextStyle="TextStyle.Caption" Text="Errors (first 10)" />
+                        <RadzenCard Style="background: var(--rz-danger-lighter); max-height: 200px; overflow-y: auto;">
+                            @foreach (var error in result.Errors.Take(10))
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-danger-darker);">
+                                    @error
+                                </RadzenText>
+                            }
+                        </RadzenCard>
+                    </RadzenStack>
+                }
+            </RadzenStack>
+        </RadzenCard>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Danger" ShowIcon="true" Variant="Variant.Flat" Shade="Shade.Lighter">
+            @errorMessage
+        </RadzenAlert>
+    }
+</RadzenStack>
+
+@code {
+    private string selectedCertification = "AZ900";
+    private int questionsPerSubtopic = 5;
+    private bool isGenerating = false;
+    private GenerationResultDto? result;
+    private string? errorMessage;
+
+    private List<CertOption> certifications = new()
+    {
+        new("AZ900", "Microsoft Azure Fundamentals (AZ-900)"),
+        new("SECPLUS", "CompTIA Security+ (SY0-701)")
+    };
+
+    private async Task GenerateQuestions()
+    {
+        isGenerating = true;
+        result = null;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            result = await GenerationService.GenerateForCertificationAsync(
+                selectedCertification,
+                questionsPerSubtopic);
+
+            Logger.LogInformation("Generated {Count} questions", result.TotalGenerated);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to generate questions");
+            errorMessage = $"Failed to generate questions: {ex.Message}";
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private string FormatDuration(double seconds)
+    {
+        var timeSpan = TimeSpan.FromSeconds(seconds);
+        if (timeSpan.TotalMinutes >= 1)
+        {
+            return $"{timeSpan.Minutes}m {timeSpan.Seconds}s";
+        }
+        return $"{timeSpan.Seconds}s";
+    }
+
+    private record CertOption(string Id, string Name);
+}
