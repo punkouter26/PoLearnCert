@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Po.LearnCert.Api.Features.Authentication.Infrastructure;
 using Po.LearnCert.Api.Features.Leaderboards.Services;
 using Po.LearnCert.Api.Features.Quiz.Infrastructure;
 using Po.LearnCert.Api.Features.Statistics.Services;
@@ -30,15 +32,18 @@ public class QuizCompletionHandler : IQuizCompletionHandler
 {
     private readonly IUserStatisticsService _statisticsService;
     private readonly LeaderboardService _leaderboardService;
+    private readonly UserManager<UserEntity> _userManager;
     private readonly ILogger<QuizCompletionHandler> _logger;
 
     public QuizCompletionHandler(
         IUserStatisticsService statisticsService,
         LeaderboardService leaderboardService,
+        UserManager<UserEntity> userManager,
         ILogger<QuizCompletionHandler> logger)
     {
         _statisticsService = statisticsService;
         _leaderboardService = leaderboardService;
+        _userManager = userManager;
         _logger = logger;
     }
 
@@ -89,8 +94,9 @@ public class QuizCompletionHandler : IQuizCompletionHandler
     {
         try
         {
-            // Get user information - in production this would come from the auth context
-            var username = userId; // TODO: Get actual username from user service/auth context
+            // Get the actual username from the user manager
+            var user = await _userManager.FindByIdAsync(userId);
+            var username = user?.UserName ?? userId;
 
             await _leaderboardService.UpdateLeaderboardAsync(
                 userId,

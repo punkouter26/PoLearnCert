@@ -6,9 +6,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build AppHost",
-      "program": "${workspaceFolder}/PoLearnCert.AppHost/bin/Debug/net10.0/PoLearnCert.AppHost.dll",
+      "program": "${workspaceFolder}/src/Po.LearnCert.AppHost/bin/Debug/net10.0/Po.LearnCert.AppHost.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/PoLearnCert.AppHost",
+      "cwd": "${workspaceFolder}/src/Po.LearnCert.AppHost",
       "stopAtEntry": false,
       "launchBrowser": {
         "enabled": true,
@@ -18,7 +18,9 @@
           "args": "/C start http://localhost:18888"
         }
       },
-      "env": {},
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
       "console": "internalConsole"
     }
   ]

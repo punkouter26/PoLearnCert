@@ -1,7 +1,10 @@
 @using Po.LearnCert.Client.Features.Leaderboards.Services
 @using Po.LearnCert.Shared.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @inject ILeaderboardService LeaderboardService
 @inject ILogger<LeaderboardView> Logger
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>Leaderboards - PoLearnCert</PageTitle>
 
@@ -129,8 +132,8 @@
     private string selectedTimePeriod = "AllTime";
     private int currentSkip = 0;
     private int currentTake = 50;
-    private string? currentUserId = "user123"; // TODO: Get from auth context
-    
+    private string? currentUserId;
+
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private List<CertOption> certifications = new()
@@ -138,7 +141,7 @@
         new("AZ-900", "Microsoft Azure Fundamentals (AZ-900)"),
         new("SecurityPlus", "CompTIA Security+ (SY0-701)")
     };
-    
+
     private List<TimePeriodOption> timePeriods = new()
     {
         new("AllTime", "All Time"),
@@ -148,6 +151,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Get current user from authentication state
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? user.Identity.Name;
+        }
+
         await LoadLeaderboard();
     }
 

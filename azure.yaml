@@ -1,6 +1,14 @@
 name: PoLearnCert
+
+metadata:
+  template: PoLearnCert@0.0.1
+
+infra:
+  provider: bicep
+  path: infra
+
 services:
-  app:
-    project: src/Po.LearnCert.AppHost/Po.LearnCert.AppHost.csproj
+  api:
+    project: src/Po.LearnCert.Api/Po.LearnCert.Api.csproj
     host: containerapp
     language: dotnet
