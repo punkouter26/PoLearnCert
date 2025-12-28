@@ -3,6 +3,9 @@
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/nightly/sdk:10.0-noble-amd64 AS build
 WORKDIR /src
 
+# Install wasm-tools workload (required for Blazor WASM publish)
+RUN dotnet workload install wasm-tools
+
 # Copy solution and project files
 COPY Directory.Packages.props ./
 COPY src/Po.LearnCert.Api/Po.LearnCert.Api.csproj src/Po.LearnCert.Api/
@@ -17,7 +20,8 @@ RUN dotnet restore src/Po.LearnCert.Api/Po.LearnCert.Api.csproj
 COPY src/ src/
 
 # Build and publish (this will also build/publish the referenced Client project)
-RUN dotnet publish src/Po.LearnCert.Api/Po.LearnCert.Api.csproj -c Release -o /app/publish
+# Pass property to disable AOT explicitly at publish time
+RUN dotnet publish src/Po.LearnCert.Api/Po.LearnCert.Api.csproj -c Release -o /app/publish -p:RunAOTCompilation=false
 
 # Runtime stage - .NET 10 GA
 FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/aspnet:10.0-noble-amd64 AS runtime
