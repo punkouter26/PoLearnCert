@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "model": {
+      "source": "/providers/Microsoft.MachineLearningServices/workspaces/sharedCatalog/models/mistral-small-2503"
+    },
+    "sku": {
+      "name": "S0",
+      "capacity": 1
+    },
+    "scaleSettings": {
+      "scaleType": "Serverless"
+    }
+  }
+}
